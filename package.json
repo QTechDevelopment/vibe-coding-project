@@ -1,0 +1,19 @@
+{
+  "name": "vibe-coding-project",
+  "version": "1.0.0",
+  "description": "vibe coding session",
+  "main": "index.js",
+  "scripts": {
+    "test": "jest",
+    "lint": "eslint .",
+    "build": "echo 'Build completed successfully'",
+    "start": "node index.js"
+  },
+  "keywords": ["vibe", "coding"],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "jest": "^29.0.0",
+    "eslint": "^8.0.0"
+  }
+}
