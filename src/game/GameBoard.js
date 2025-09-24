@@ -5,6 +5,7 @@
 import * as THREE from 'three';
 import { Block } from './Block.js';
 import { BLOCK_TYPES, GRID_CONFIG } from '../config/GameConfig.js';
+import { EasingUtils } from '../utils/EasingUtils.js';
 
 export class GameBoard {
     constructor(scene, effectsManager, scoreManager, audioManager) {
@@ -91,10 +92,18 @@ export class GameBoard {
             const currentY = block.mesh.position.y;
             
             if (Math.abs(currentY - targetY) > 0.01) {
-                block.mesh.position.y = THREE.MathUtils.lerp(currentY, targetY, speed);
+                // Enhanced falling with bounce easing
+                const distance = Math.abs(currentY - targetY);
+                const totalDistance = fallingBlock.startY || currentY + 10;
+                const progress = 1 - (distance / totalDistance);
+                
+                // Use eased interpolation for smoother falling
+                const easedProgress = EasingUtils.easeOutBounce(Math.min(1, Math.max(0, progress)));
+                block.mesh.position.y = THREE.MathUtils.lerp(currentY, targetY, speed * 1.5);
                 allFallen = false;
             } else {
                 block.mesh.position.y = targetY;
+                block.position.y = targetY; // Update the block's stored position too
             }
         });
 
@@ -109,18 +118,42 @@ export class GameBoard {
 
     updateBurstAnimations() {
         this.burstAnimations = this.burstAnimations.filter(animation => {
-            animation.progress += 0.05;
+            animation.progress += 0.04; // Slightly slower for smoother animation
             
             if (animation.progress >= 1) {
-                // Remove burst effect
+                // Remove burst effects
                 this.scene.remove(animation.effect);
+                if (animation.effect.geometry) animation.effect.geometry.dispose();
+                if (animation.effect.material) animation.effect.material.dispose();
+                
+                if (animation.ringEffect) {
+                    this.scene.remove(animation.ringEffect);
+                    if (animation.ringEffect.geometry) animation.ringEffect.geometry.dispose();
+                    if (animation.ringEffect.material) animation.ringEffect.material.dispose();
+                }
                 return false;
             }
             
-            // Update burst effect
-            const scale = 1 + animation.progress * 2;
+            // Enhanced burst effect with better easing
+            const scale = EasingUtils.interpolate(1, 3, animation.progress, EasingUtils.easeOutBack);
             animation.effect.scale.setScalar(scale);
-            animation.effect.material.opacity = 1 - animation.progress;
+            
+            // Ring effect with different scaling
+            if (animation.ringEffect) {
+                const ringScale = EasingUtils.interpolate(0.5, 4, animation.progress, EasingUtils.easeOutCubic);
+                animation.ringEffect.scale.setScalar(ringScale);
+                animation.ringEffect.rotation.z += 0.15;
+                
+                const ringOpacity = EasingUtils.interpolate(0.6, 0, animation.progress, EasingUtils.easeOutQuad);
+                animation.ringEffect.material.opacity = ringOpacity;
+            }
+            
+            // Smooth opacity fade
+            const opacity = EasingUtils.interpolate(0.8, 0, animation.progress, EasingUtils.easeOutCubic);
+            animation.effect.material.opacity = opacity;
+            
+            // Add rotation for more dynamic effect
+            animation.effect.rotation.z += 0.1;
             
             return true;
         });
@@ -172,29 +205,48 @@ export class GameBoard {
         // Play burst sound
         this.audioManager.playSound('burst');
         
-        // Create burst effects and remove blocks
+        // Start removal animations for blocks
         blocksToRemove.forEach(({ row, col }) => {
             const block = this.blocks[row][col];
             if (block) {
-                // Create burst effect
+                // Start the block's removal animation
+                block.startRemoval();
+            }
+        });
+        
+        // Create burst effects at each block position
+        blocksToRemove.forEach(({ row, col }) => {
+            const block = this.blocks[row][col];
+            if (block) {
                 this.createBurstEffect(block.mesh.position);
-                
-                // Remove block from scene
-                this.scene.remove(block.mesh);
-                block.dispose();
-                
-                // Clear grid position
-                this.grid[row][col] = null;
-                this.blocks[row][col] = null;
             }
         });
 
-        // Apply gravity after a short delay
-        setTimeout(() => this.applyGravity(), 200);
+        // Wait for removal animations to complete before cleaning up
+        setTimeout(() => {
+            blocksToRemove.forEach(({ row, col }) => {
+                const block = this.blocks[row][col];
+                if (block) {
+                    // Remove block from scene
+                    this.scene.remove(block.mesh);
+                    block.dispose();
+                    
+                    // Clear grid position
+                    this.grid[row][col] = null;
+                    this.blocks[row][col] = null;
+                }
+            });
+            
+            // Apply gravity after removal
+            setTimeout(() => this.applyGravity(), 100);
+        }, 400); // Wait for removal animation
     }
 
     createBurstEffect(position) {
-        const geometry = new THREE.SphereGeometry(0.5, 8, 8);
+        // Enhanced burst effect with multiple visual elements
+        
+        // Main golden sphere burst
+        const geometry = new THREE.SphereGeometry(0.4, 12, 8);
         const material = new THREE.MeshBasicMaterial({
             color: 0xFFD700,
             transparent: true,
@@ -205,12 +257,27 @@ export class GameBoard {
         burstEffect.position.copy(position);
         this.scene.add(burstEffect);
         
+        // Add secondary ring effect for extra impact
+        const ringGeometry = new THREE.RingGeometry(0.3, 0.6, 16);
+        const ringMaterial = new THREE.MeshBasicMaterial({
+            color: 0xFF6B35,
+            transparent: true,
+            opacity: 0.6,
+            side: THREE.DoubleSide
+        });
+        
+        const ringEffect = new THREE.Mesh(ringGeometry, ringMaterial);
+        ringEffect.position.copy(position);
+        ringEffect.position.z += 0.1;
+        this.scene.add(ringEffect);
+        
         this.burstAnimations.push({
             effect: burstEffect,
+            ringEffect: ringEffect,
             progress: 0
         });
         
-        // Create particle effect
+        // Create enhanced particle effect
         this.effectsManager.createBurstParticles(position);
     }
 
@@ -244,11 +311,12 @@ export class GameBoard {
                 this.grid[newRow][col] = columnTypes[i];
                 this.blocks[newRow][col] = columnBlocks[i];
                 
-                // Add to falling animation
+                // Add to falling animation with enhanced properties
                 this.fallingBlocks.push({
                     block: columnBlocks[i],
                     targetY: targetY,
-                    speed: 0.15
+                    startY: columnBlocks[i].mesh.position.y,
+                    speed: 0.12 + Math.random() * 0.05 // Slightly varied speed
                 });
             }
             
@@ -265,11 +333,12 @@ export class GameBoard {
                 this.blocks[row][col] = block;
                 this.scene.add(block.mesh);
                 
-                // Add to falling animation
+                // Add to falling animation with enhanced properties
                 this.fallingBlocks.push({
                     block: block,
                     targetY: y,
-                    speed: 0.12
+                    startY: y + 10,
+                    speed: 0.10 + Math.random() * 0.04 // Varied falling speed for new blocks
                 });
             }
         }

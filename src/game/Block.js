@@ -4,6 +4,7 @@
 
 import * as THREE from 'three';
 import { BLOCK_TYPES } from '../config/GameConfig.js';
+import { EasingUtils } from '../utils/EasingUtils.js';
 
 export class Block {
     constructor(type, position) {
@@ -16,6 +17,18 @@ export class Block {
         this.bobOffset = Math.random() * Math.PI * 2;
         this.bobSpeed = 0.03;
         this.time = 0;
+        
+        // Enhanced transition properties
+        this.hoverProgress = 0;
+        this.selectedProgress = 0;
+        this.isHovered = false;
+        this.isSelected = false;
+        this.removalProgress = 0;
+        this.isRemoving = false;
+        
+        // Original values for interpolation
+        this.originalScale = 1;
+        this.originalColor = null;
         
         this.createMesh();
     }
@@ -99,11 +112,17 @@ export class Block {
         hsl.s += (Math.random() - 0.5) * 0.1;
         material.color.setHSL(hsl.h, Math.max(0, Math.min(1, hsl.s)), Math.max(0, Math.min(1, hsl.l)));
 
+        // Store original color for transitions
+        this.originalColor = material.color.clone();
+
         return material;
     }
 
     update() {
         this.time += 0.016; // Approximate 60fps
+        
+        // Update transition states
+        this.updateTransitions();
         
         // Gentle rotation
         this.mesh.rotation.z += this.rotationSpeed;
@@ -112,19 +131,111 @@ export class Block {
         const bobAmount = Math.sin(this.time * this.bobSpeed + this.bobOffset) * 0.02;
         this.mesh.position.y = this.position.y + bobAmount;
         
-        // Gentle scale pulsing for visual interest
-        const scaleAmount = 1 + Math.sin(this.time * 0.02 + this.bobOffset) * 0.05;
-        this.mesh.scale.setScalar(scaleAmount);
+        // Base scale with gentle pulsing
+        const basePulse = 1 + Math.sin(this.time * 0.02 + this.bobOffset) * 0.05;
+        
+        // Apply hover scale effect
+        const hoverScale = EasingUtils.interpolate(1, 1.15, this.hoverProgress, EasingUtils.easeOutBack);
+        
+        // Apply selection scale effect
+        const selectionScale = EasingUtils.interpolate(1, 1.25, this.selectedProgress, EasingUtils.easeOutElastic);
+        
+        // Apply removal scale effect
+        const removalScale = EasingUtils.interpolate(1, 0, this.removalProgress, EasingUtils.easeInBack);
+        
+        // Combine all scale effects
+        const finalScale = basePulse * hoverScale * selectionScale * removalScale;
+        this.mesh.scale.setScalar(finalScale);
+        
+        // Update material opacity during removal
+        if (this.isRemoving) {
+            const opacity = EasingUtils.interpolate(0.95, 0, this.removalProgress, EasingUtils.easeOutQuad);
+            this.mesh.material.opacity = opacity;
+        }
+    }
+
+    updateTransitions() {
+        const transitionSpeed = 0.08;
+        
+        // Update hover transition
+        if (this.isHovered && this.hoverProgress < 1) {
+            this.hoverProgress = Math.min(1, this.hoverProgress + transitionSpeed);
+        } else if (!this.isHovered && this.hoverProgress > 0) {
+            this.hoverProgress = Math.max(0, this.hoverProgress - transitionSpeed);
+        }
+        
+        // Update selection transition
+        if (this.isSelected && this.selectedProgress < 1) {
+            this.selectedProgress = Math.min(1, this.selectedProgress + transitionSpeed);
+        } else if (!this.isSelected && this.selectedProgress > 0) {
+            this.selectedProgress = Math.max(0, this.selectedProgress - transitionSpeed);
+        }
+        
+        // Update removal transition
+        if (this.isRemoving && this.removalProgress < 1) {
+            this.removalProgress = Math.min(1, this.removalProgress + transitionSpeed * 0.8);
+        }
+        
+        // Update emissive color based on hover/selection states
+        this.updateEmissiveColor();
+    }
+
+    updateEmissiveColor() {
+        const baseEmissive = { r: 0, g: 0, b: 0 };
+        const hoverEmissive = { r: 0.3, g: 0.3, b: 0.3 };
+        const selectEmissive = { r: 0.5, g: 0.4, b: 0.1 };
+        
+        let targetEmissive = baseEmissive;
+        
+        if (this.selectedProgress > 0) {
+            targetEmissive = EasingUtils.interpolateColor(
+                baseEmissive, 
+                selectEmissive, 
+                this.selectedProgress, 
+                EasingUtils.easeOutQuad
+            );
+        }
+        
+        if (this.hoverProgress > 0) {
+            targetEmissive = EasingUtils.interpolateColor(
+                targetEmissive, 
+                hoverEmissive, 
+                this.hoverProgress, 
+                EasingUtils.easeOutQuad
+            );
+        }
+        
+        this.mesh.material.emissive.setRGB(targetEmissive.r, targetEmissive.g, targetEmissive.b);
     }
 
     highlight() {
-        // Add highlight effect when hovered
-        this.mesh.material.emissive.setHex(0x444444);
+        // Smooth transition to highlighted state
+        this.isHovered = true;
     }
 
     removeHighlight() {
-        // Remove highlight effect
-        this.mesh.material.emissive.setHex(0x000000);
+        // Smooth transition out of highlighted state
+        this.isHovered = false;
+    }
+
+    select() {
+        // Smooth transition to selected state
+        this.isSelected = true;
+    }
+
+    deselect() {
+        // Smooth transition out of selected state
+        this.isSelected = false;
+    }
+
+    startRemoval() {
+        // Begin removal animation
+        this.isRemoving = true;
+        this.removalProgress = 0;
+    }
+
+    isRemovalComplete() {
+        return this.isRemoving && this.removalProgress >= 1;
     }
 
     dispose() {

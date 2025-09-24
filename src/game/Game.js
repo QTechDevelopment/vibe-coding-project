@@ -7,6 +7,7 @@ import { GameBoard } from './GameBoard.js';
 import { InputManager } from './InputManager.js';
 import { ScoreManager } from './ScoreManager.js';
 import { EffectsManager } from './EffectsManager.js';
+import { UIManager } from '../utils/UIManager.js';
 
 export class Game {
     constructor(container, audioManager) {
@@ -23,6 +24,7 @@ export class Game {
         this.inputManager = null;
         this.scoreManager = null;
         this.effectsManager = null;
+        this.uiManager = null;
         
         // Game state
         this.isRunning = false;
@@ -101,6 +103,7 @@ export class Game {
         // Initialize game systems
         this.scoreManager = new ScoreManager();
         this.effectsManager = new EffectsManager(this.scene, this.audioManager);
+        this.uiManager = new UIManager();
         this.gameBoard = new GameBoard(this.scene, this.effectsManager, this.scoreManager, this.audioManager);
         this.inputManager = new InputManager(this.camera, this.gameBoard, this.renderer.domElement);
     }
@@ -108,14 +111,16 @@ export class Game {
     setupEventListeners() {
         window.addEventListener('resize', this.onWindowResize, false);
         
-        // Game events
+        // Enhanced game events with UI animations
         this.scoreManager.on('scoreUpdate', (score) => {
-            document.getElementById('score').textContent = `Score: ${score}`;
+            this.uiManager.updateScore(score);
         });
         
         this.scoreManager.on('levelUp', (level) => {
-            document.getElementById('level').textContent = `Level: ${level}`;
+            this.uiManager.updateLevel(level);
+            this.uiManager.showMessage(`Level ${level}!`, 2000);
             this.audioManager.playSound('levelUp');
+            this.effectsManager.createLevelUpEffect();
         });
     }
 
