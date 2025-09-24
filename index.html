@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Autumn Burst - Fall Puzzle Game</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Georgia', serif;
+            background: linear-gradient(135deg, #8B4513 0%, #CD853F 50%, #D2691E 100%);
+            overflow: hidden;
+            user-select: none;
+        }
+        
+        #gameContainer {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+        }
+        
+        #ui {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            z-index: 100;
+            color: #FFF8DC;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+        
+        #score {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        
+        #level {
+            font-size: 18px;
+            margin-bottom: 10px;
+        }
+        
+        #instructions {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            right: 20px;
+            text-align: center;
+            color: #FFF8DC;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            font-size: 16px;
+        }
+        
+        #loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #FFF8DC;
+            font-size: 24px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+        
+        @media (max-width: 768px) {
+            #ui {
+                font-size: 14px;
+            }
+            #score {
+                font-size: 20px;
+            }
+            #level {
+                font-size: 16px;
+            }
+            #instructions {
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="gameContainer">
+        <div id="loading">Loading Autumn Burst...</div>
+        <div id="ui" style="display: none;">
+            <div id="score">Score: 0</div>
+            <div id="level">Level: 1</div>
+        </div>
+        <div id="instructions" style="display: none;">
+            Click matching groups of 4+ autumn items to burst them!
+        </div>
+    </div>
+    <script type="module" src="src/main.js"></script>
+</body>
+</html>
