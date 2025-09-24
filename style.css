@@ -1,0 +1,163 @@
+/* Retro 90s Fall Theme with 24-bit color palette */
+body {
+    margin: 0;
+    padding: 20px;
+    font-family: 'Courier New', monospace;
+    background: linear-gradient(135deg, #8B4513 0%, #A0522D 50%, #CD853F 100%);
+    color: #FFFFE0;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.game-container {
+    background: rgba(139, 69, 19, 0.9);
+    border: 4px solid #FF8C00;
+    border-radius: 15px;
+    padding: 20px;
+    box-shadow: 0 0 20px rgba(255, 140, 0, 0.5);
+    text-align: center;
+}
+
+.header h1 {
+    margin: 0 0 15px 0;
+    font-size: 2.5em;
+    text-shadow: 3px 3px 0px #8B4513;
+    color: #FFD700;
+}
+
+.score-display {
+    display: flex;
+    justify-content: space-between;
+    font-size: 1.2em;
+    font-weight: bold;
+    margin-bottom: 15px;
+    color: #FFFFE0;
+}
+
+.game-area {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    align-items: flex-start;
+    margin-bottom: 20px;
+}
+
+#gameCanvas {
+    border: 3px solid #D2691E;
+    background: #2F1B14;
+    box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.5);
+}
+
+.next-piece {
+    background: rgba(47, 27, 20, 0.8);
+    border: 2px solid #D2691E;
+    border-radius: 10px;
+    padding: 10px;
+    min-width: 140px;
+}
+
+.next-piece h3 {
+    margin: 0 0 10px 0;
+    color: #FFD700;
+}
+
+#nextCanvas {
+    border: 1px solid #D2691E;
+    background: #2F1B14;
+}
+
+.controls {
+    background: rgba(47, 27, 20, 0.6);
+    border: 2px solid #D2691E;
+    border-radius: 10px;
+    padding: 15px;
+    margin-top: 15px;
+}
+
+.instructions {
+    margin-bottom: 15px;
+}
+
+.instructions h3 {
+    margin: 0 0 10px 0;
+    color: #FFD700;
+}
+
+.instructions p {
+    margin: 5px 0;
+    font-size: 0.9em;
+    color: #FFFFE0;
+}
+
+button {
+    background: linear-gradient(135deg, #FF8C00, #FF4500);
+    border: 2px solid #8B4513;
+    color: #FFFFE0;
+    padding: 10px 20px;
+    margin: 5px;
+    border-radius: 8px;
+    font-family: 'Courier New', monospace;
+    font-weight: bold;
+    cursor: pointer;
+    font-size: 1em;
+    transition: all 0.2s;
+}
+
+button:hover {
+    background: linear-gradient(135deg, #FFB347, #FF6347);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+button:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.game-over {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(139, 69, 19, 0.95);
+    border: 4px solid #FF8C00;
+    border-radius: 15px;
+    padding: 30px;
+    text-align: center;
+    box-shadow: 0 0 30px rgba(255, 140, 0, 0.8);
+    z-index: 1000;
+}
+
+.game-over h2 {
+    color: #FFD700;
+    font-size: 2em;
+    margin: 0 0 15px 0;
+    text-shadow: 2px 2px 0px #8B4513;
+}
+
+.game-over p {
+    font-size: 1.3em;
+    margin: 15px 0;
+    color: #FFFFE0;
+}
+
+/* Retro scanline effect */
+.game-container::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 2px,
+        rgba(0, 0, 0, 0.03) 2px,
+        rgba(0, 0, 0, 0.03) 4px
+    );
+    pointer-events: none;
+    border-radius: 15px;
+}
