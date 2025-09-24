@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Autumn Burst - Fall Match-4 Puzzle</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="game-container">
+        <header class="game-header">
+            <h1>🍂 Autumn Burst 🍂</h1>
+            <div class="score-board">
+                <div class="score">
+                    <span class="label">Score:</span>
+                    <span id="score">0</span>
+                </div>
+                <div class="combo">
+                    <span class="label">Combo:</span>
+                    <span id="combo">0x</span>
+                </div>
+            </div>
+        </header>
+        
+        <main class="game-main">
+            <div class="game-board-container">
+                <canvas id="gameBoard" width="480" height="480"></canvas>
+                <div class="game-overlay" id="gameOverlay" style="display: none;">
+                    <div class="overlay-content">
+                        <h2>Game Over!</h2>
+                        <p>Final Score: <span id="finalScore">0</span></p>
+                        <button id="restartBtn" class="btn btn-primary">Play Again</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="game-info">
+                <div class="next-icons">
+                    <h3>Next Icons:</h3>
+                    <div id="nextIcons" class="next-preview"></div>
+                </div>
+                
+                <div class="instructions">
+                    <h3>How to Play:</h3>
+                    <ul>
+                        <li>Match 4 or more identical fall icons</li>
+                        <li>Icons will burst and earn points</li>
+                        <li>Create combos for bonus points</li>
+                        <li>Click to drop falling icons</li>
+                    </ul>
+                </div>
+                
+                <div class="controls">
+                    <button id="pauseBtn" class="btn btn-secondary">Pause</button>
+                    <button id="newGameBtn" class="btn btn-primary">New Game</button>
+                </div>
+            </div>
+        </main>
+    </div>
+    
+    <script src="game.js"></script>
+</body>
+</html>

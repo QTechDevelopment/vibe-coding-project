@@ -1,0 +1,311 @@
+/* Fall/Autumn Color Palette */
+:root {
+    --autumn-orange: #D2691E;
+    --autumn-red: #B22222;
+    --autumn-gold: #DAA520;
+    --autumn-brown: #8B4513;
+    --autumn-yellow: #FFD700;
+    --autumn-dark-red: #8B0000;
+    --autumn-bg: #2F1B14;
+    --autumn-light: #F4E4BC;
+    --shadow: rgba(0, 0, 0, 0.3);
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Georgia', serif;
+    background: linear-gradient(135deg, var(--autumn-bg) 0%, var(--autumn-brown) 100%);
+    color: var(--autumn-light);
+    min-height: 100vh;
+    padding: 20px;
+}
+
+.game-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 20px;
+    padding: 20px;
+    box-shadow: 0 10px 30px var(--shadow);
+}
+
+.game-header {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.game-header h1 {
+    font-size: 2.5rem;
+    color: var(--autumn-gold);
+    text-shadow: 2px 2px 4px var(--shadow);
+    margin-bottom: 15px;
+}
+
+.score-board {
+    display: flex;
+    justify-content: center;
+    gap: 40px;
+    font-size: 1.2rem;
+    font-weight: bold;
+}
+
+.score, .combo {
+    background: rgba(0, 0, 0, 0.3);
+    padding: 10px 20px;
+    border-radius: 10px;
+    border: 2px solid var(--autumn-gold);
+}
+
+.label {
+    color: var(--autumn-light);
+    margin-right: 10px;
+}
+
+#score, #combo {
+    color: var(--autumn-yellow);
+}
+
+.game-main {
+    display: flex;
+    gap: 30px;
+    align-items: flex-start;
+}
+
+.game-board-container {
+    position: relative;
+    flex-shrink: 0;
+}
+
+#gameBoard {
+    border: 4px solid var(--autumn-gold);
+    border-radius: 15px;
+    background: var(--autumn-light);
+    box-shadow: 0 5px 15px var(--shadow);
+    cursor: pointer;
+}
+
+.game-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.8);
+    border-radius: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.overlay-content {
+    background: var(--autumn-brown);
+    padding: 30px;
+    border-radius: 15px;
+    text-align: center;
+    border: 3px solid var(--autumn-gold);
+}
+
+.overlay-content h2 {
+    color: var(--autumn-gold);
+    margin-bottom: 15px;
+    font-size: 2rem;
+}
+
+.overlay-content p {
+    margin-bottom: 20px;
+    font-size: 1.2rem;
+}
+
+.game-info {
+    flex: 1;
+    background: rgba(0, 0, 0, 0.2);
+    padding: 20px;
+    border-radius: 15px;
+    border: 2px solid var(--autumn-brown);
+}
+
+.game-info h3 {
+    color: var(--autumn-gold);
+    margin-bottom: 15px;
+    font-size: 1.3rem;
+    border-bottom: 2px solid var(--autumn-gold);
+    padding-bottom: 5px;
+}
+
+.next-icons {
+    margin-bottom: 25px;
+}
+
+.next-preview {
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.next-icon {
+    width: 40px;
+    height: 40px;
+    border: 2px solid var(--autumn-gold);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    background: var(--autumn-light);
+}
+
+.instructions {
+    margin-bottom: 25px;
+}
+
+.instructions ul {
+    list-style: none;
+    padding-left: 0;
+}
+
+.instructions li {
+    padding: 5px 0;
+    position: relative;
+    padding-left: 20px;
+}
+
+.instructions li:before {
+    content: "🍂";
+    position: absolute;
+    left: 0;
+}
+
+.controls {
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+.btn {
+    padding: 12px 24px;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-family: inherit;
+}
+
+.btn-primary {
+    background: var(--autumn-orange);
+    color: white;
+    border: 2px solid var(--autumn-dark-red);
+}
+
+.btn-primary:hover {
+    background: var(--autumn-dark-red);
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px var(--shadow);
+}
+
+.btn-secondary {
+    background: var(--autumn-brown);
+    color: var(--autumn-light);
+    border: 2px solid var(--autumn-gold);
+}
+
+.btn-secondary:hover {
+    background: var(--autumn-gold);
+    color: var(--autumn-brown);
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px var(--shadow);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .game-main {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .game-header h1 {
+        font-size: 2rem;
+    }
+    
+    .score-board {
+        gap: 20px;
+        font-size: 1rem;
+    }
+    
+    #gameBoard {
+        width: 320px;
+        height: 320px;
+    }
+    
+    .controls {
+        justify-content: center;
+    }
+}
+
+/* Game Board Cell Styles */
+.grid-cell {
+    transition: all 0.3s ease;
+}
+
+.grid-cell.highlight {
+    background: rgba(255, 215, 0, 0.3);
+}
+
+.grid-cell.burst {
+    animation: burst 0.5s ease-out;
+}
+
+@keyframes burst {
+    0% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    50% {
+        transform: scale(1.5);
+        opacity: 0.7;
+    }
+    100% {
+        transform: scale(0);
+        opacity: 0;
+    }
+}
+
+@keyframes fall {
+    from {
+        transform: translateY(-100px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.falling {
+    animation: fall 0.3s ease-out;
+}
+
+@keyframes fadeInOut {
+    0% {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(0.5);
+    }
+    20% {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1.1);
+    }
+    80% {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1);
+    }
+    100% {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(0.8);
+    }
+}
