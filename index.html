@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Autumn Burst - Fall Themed Block Game</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="game-container">
+        <div class="header">
+            <h1>🍂 Autumn Burst 🍂</h1>
+            <div class="score-display">
+                <span>Score: <span id="score">0</span></span>
+                <span>Level: <span id="level">1</span></span>
+            </div>
+        </div>
+        
+        <div class="game-area">
+            <canvas id="gameCanvas" width="480" height="640"></canvas>
+            <div class="next-piece">
+                <h3>Next:</h3>
+                <canvas id="nextCanvas" width="120" height="80"></canvas>
+            </div>
+        </div>
+        
+        <div class="controls">
+            <div class="instructions">
+                <h3>Controls:</h3>
+                <p>← → Move | ↓ Drop | Space Rotate | Enter Start/Pause</p>
+                <p>Match 4+ icons to burst them!</p>
+            </div>
+            <button id="startBtn">Start Game</button>
+            <button id="pauseBtn">Pause</button>
+            <button id="resetBtn">Reset</button>
+        </div>
+        
+        <div class="game-over" id="gameOver" style="display: none;">
+            <h2>Game Over!</h2>
+            <p>Final Score: <span id="finalScore">0</span></p>
+            <button onclick="game.restart()">Play Again</button>
+        </div>
+    </div>
+    
+    <script src="game.js"></script>
+</body>
+</html>
