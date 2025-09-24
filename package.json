@@ -4,7 +4,7 @@
   "description": "vibe coding session",
   "main": "index.js",
   "scripts": {
-    "test": "jest",
+    "test": "npx jest",
     "lint": "eslint .",
     "build": "echo 'Build completed successfully'",
     "start": "node index.js"
