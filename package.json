@@ -1,0 +1,21 @@
+{
+  "name": "autumn-burst-game",
+  "version": "1.0.0",
+  "description": "Autumn Burst - Fall-themed 3D Puzzle Game",
+  "main": "src/main.js",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "keywords": ["game", "puzzle", "3d", "autumn", "threejs"],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "three": "^0.160.0"
+  },
+  "devDependencies": {
+    "vite": "^5.0.0"
+  }
+}
