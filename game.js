@@ -12,6 +12,8 @@ class AutumnBurstGame {
         this.animating = false;
         this.selectedCell = null;
         this.burstingCells = [];
+        this.activeAchievements = new Set(); // Track active achievement elements
+        this.keyboardSelectedCell = {row: 0, col: 0}; // Track keyboard cursor position
         
         // Fall-themed icons with emojis
         this.icons = ['🍂', '🎃', '🌰', '🍎', '🍄', '🌻', '🥧', '📚'];
@@ -87,6 +89,67 @@ class AutumnBurstGame {
         document.getElementById('restartBtn').addEventListener('click', () => this.restart());
         document.getElementById('newGameBtn').addEventListener('click', () => this.restart());
         document.getElementById('pauseBtn').addEventListener('click', () => this.togglePause());
+        
+        // Add keyboard controls for accessibility
+        document.addEventListener('keydown', (e) => this.handleKeyboard(e));
+        
+        // Make canvas focusable for keyboard navigation
+        this.canvas.setAttribute('tabindex', '0');
+        this.canvas.focus();
+    }
+    
+    handleKeyboard(e) {
+        if (!this.gameRunning || this.animating) return;
+        
+        switch(e.code) {
+            case 'ArrowUp':
+                e.preventDefault();
+                this.keyboardSelectedCell.row = Math.max(0, this.keyboardSelectedCell.row - 1);
+                break;
+            case 'ArrowDown':
+                e.preventDefault();
+                this.keyboardSelectedCell.row = Math.min(this.gridSize - 1, this.keyboardSelectedCell.row + 1);
+                break;
+            case 'ArrowLeft':
+                e.preventDefault();
+                this.keyboardSelectedCell.col = Math.max(0, this.keyboardSelectedCell.col - 1);
+                break;
+            case 'ArrowRight':
+                e.preventDefault();
+                this.keyboardSelectedCell.col = Math.min(this.gridSize - 1, this.keyboardSelectedCell.col + 1);
+                break;
+            case 'Space':
+            case 'Enter':
+                e.preventDefault();
+                this.handleKeyboardSelect();
+                break;
+            case 'KeyP':
+                e.preventDefault();
+                this.togglePause();
+                break;
+            case 'KeyR':
+                e.preventDefault();
+                this.restart();
+                break;
+        }
+    }
+    
+    handleKeyboardSelect() {
+        const {row, col} = this.keyboardSelectedCell;
+        
+        if (!this.selectedCell) {
+            // First selection
+            this.selectedCell = {row, col};
+        } else {
+            // Second selection - try to swap
+            if (this.isAdjacent(this.selectedCell, {row, col})) {
+                this.swapCells(this.selectedCell, {row, col});
+                this.selectedCell = null;
+            } else {
+                // Select new cell
+                this.selectedCell = {row, col};
+            }
+        }
     }
     
     handleClick(e) {
@@ -192,6 +255,12 @@ class AutumnBurstGame {
                     // Highlight selected cell
                     if (this.selectedCell && this.selectedCell.row === row && this.selectedCell.col === col) {
                         this.ctx.fillStyle = 'rgba(255, 215, 0, 0.5)';
+                        this.ctx.fillRect(col * this.cellSize + 2, row * this.cellSize + 2, 
+                                        this.cellSize - 4, this.cellSize - 4);
+                    }
+                    // Highlight keyboard cursor position
+                    else if (this.keyboardSelectedCell.row === row && this.keyboardSelectedCell.col === col) {
+                        this.ctx.fillStyle = 'rgba(0, 100, 255, 0.3)';
                         this.ctx.fillRect(col * this.cellSize + 2, row * this.cellSize + 2, 
                                         this.cellSize - 4, this.cellSize - 4);
                     } else {
@@ -405,6 +474,7 @@ class AutumnBurstGame {
         this.animating = false;
         this.selectedCell = null;
         this.burstingCells = [];
+        this.clearActiveAchievements(); // Clean up any active achievements
         document.getElementById('gameOverlay').style.display = 'none';
         this.init();
     }
@@ -415,8 +485,35 @@ class AutumnBurstGame {
         pauseBtn.textContent = this.gameRunning ? 'Pause' : 'Resume';
         
         if (this.gameRunning) {
+            this.hidePauseOverlay();
             this.gameLoop();
+        } else {
+            this.showPauseOverlay();
         }
+    }
+    
+    showPauseOverlay() {
+        // Draw a semi-transparent overlay with pause message
+        this.ctx.save();
+        this.ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+        this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+        
+        // Draw pause message
+        this.ctx.fillStyle = '#DAA520';
+        this.ctx.font = 'bold 48px Georgia';
+        this.ctx.textAlign = 'center';
+        this.ctx.textBaseline = 'middle';
+        this.ctx.fillText('PAUSED', this.canvas.width / 2, this.canvas.height / 2 - 20);
+        
+        this.ctx.fillStyle = '#F4E4BC';
+        this.ctx.font = '20px Georgia';
+        this.ctx.fillText('Click Resume to continue', this.canvas.width / 2, this.canvas.height / 2 + 30);
+        this.ctx.restore();
+    }
+    
+    hidePauseOverlay() {
+        // Simply redraw the grid to remove the pause overlay
+        this.drawGrid();
     }
     
     gameOver() {
@@ -426,16 +523,59 @@ class AutumnBurstGame {
     }
     
     checkGameOver() {
-        // Simple game over condition: if score reaches a milestone, show celebration
-        // Or if no moves possible (in a more complex version)
-        if (this.score >= 1000) {
+        // Check for achievement milestones first
+        if (this.score >= 1000 && this.score < 1010) {
             this.showAchievement("Autumn Master! 🍂");
         }
+        
+        // Check if no valid moves are possible
+        if (!this.hasValidMoves()) {
+            setTimeout(() => this.gameOver(), 1000); // Delay to let final animations complete
+        }
+    }
+    
+    hasValidMoves() {
+        // Check every cell to see if swapping with adjacent cells creates matches
+        for (let row = 0; row < this.gridSize; row++) {
+            for (let col = 0; col < this.gridSize; col++) {
+                // Check right neighbor
+                if (col < this.gridSize - 1) {
+                    if (this.wouldSwapCreateMatch(row, col, row, col + 1)) {
+                        return true;
+                    }
+                }
+                // Check bottom neighbor
+                if (row < this.gridSize - 1) {
+                    if (this.wouldSwapCreateMatch(row, col, row + 1, col)) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+    
+    wouldSwapCreateMatch(row1, col1, row2, col2) {
+        // Temporarily swap the icons
+        const temp = this.grid[row1][col1];
+        this.grid[row1][col1] = this.grid[row2][col2];
+        this.grid[row2][col2] = temp;
+        
+        // Check if this creates any matches
+        const matches = this.findMatches();
+        const hasMatches = matches.length > 0;
+        
+        // Swap back
+        this.grid[row2][col2] = this.grid[row1][col1];
+        this.grid[row1][col1] = temp;
+        
+        return hasMatches;
     }
     
     showAchievement(message) {
         // Create a temporary achievement display
         const achievement = document.createElement('div');
+        achievement.className = 'achievement-popup'; // Add class for easier cleanup
         achievement.style.cssText = `
             position: fixed;
             top: 50%;
@@ -454,9 +594,26 @@ class AutumnBurstGame {
         achievement.textContent = message;
         document.body.appendChild(achievement);
         
+        // Track this achievement element
+        this.activeAchievements.add(achievement);
+        
         setTimeout(() => {
-            document.body.removeChild(achievement);
+            // Safe removal with error handling
+            if (achievement.parentNode && this.activeAchievements.has(achievement)) {
+                document.body.removeChild(achievement);
+                this.activeAchievements.delete(achievement);
+            }
         }, 3000);
+    }
+    
+    // Clean up method for when game restarts
+    clearActiveAchievements() {
+        this.activeAchievements.forEach(achievement => {
+            if (achievement.parentNode) {
+                document.body.removeChild(achievement);
+            }
+        });
+        this.activeAchievements.clear();
     }
     
     delay(ms) {
