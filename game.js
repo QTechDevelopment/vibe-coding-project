@@ -11,6 +11,11 @@ class AutumnBurstGame {
         this.gameRunning = true;
         this.animating = false;
         
+        // Swapping system
+        this.selectedCell = null;
+        this.hoveredCell = null;
+        this.particles = [];
+        
         // Fall-themed icons with emojis
         this.icons = ['🍂', '🎃', '🌰', '🍎', '🍄', '🌻', '🥧', '📚'];
         this.iconColors = {
@@ -52,11 +57,34 @@ class AutumnBurstGame {
     
     setupEventListeners() {
         this.canvas.addEventListener('click', (e) => this.handleClick(e));
+        this.canvas.addEventListener('mousemove', (e) => this.handleMouseMove(e));
+        this.canvas.addEventListener('mouseleave', () => this.handleMouseLeave());
         document.getElementById('restartBtn').addEventListener('click', () => this.restart());
         document.getElementById('newGameBtn').addEventListener('click', () => this.restart());
         document.getElementById('pauseBtn').addEventListener('click', () => this.togglePause());
     }
     
+    handleMouseMove(e) {
+        if (!this.gameRunning || this.animating) return;
+        
+        const rect = this.canvas.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        
+        const col = Math.floor(x / this.cellSize);
+        const row = Math.floor(y / this.cellSize);
+        
+        if (row >= 0 && row < this.gridSize && col >= 0 && col < this.gridSize) {
+            this.hoveredCell = { row, col };
+        } else {
+            this.hoveredCell = null;
+        }
+    }
+    
+    handleMouseLeave() {
+        this.hoveredCell = null;
+    }
+
     handleClick(e) {
         if (!this.gameRunning || this.animating) return;
         
@@ -68,8 +96,102 @@ class AutumnBurstGame {
         const row = Math.floor(y / this.cellSize);
         
         if (row >= 0 && row < this.gridSize && col >= 0 && col < this.gridSize) {
-            this.checkAndProcessMatches();
+            this.handleCellClick(row, col);
         }
+    }
+    
+    handleCellClick(row, col) {
+        // First click - select cell
+        if (!this.selectedCell) {
+            this.selectedCell = { row, col };
+            console.log('Selected cell:', row, col);
+            return;
+        }
+        
+        // Second click - attempt swap
+        const selected = this.selectedCell;
+        
+        // If clicking the same cell, deselect
+        if (selected.row === row && selected.col === col) {
+            this.selectedCell = null;
+            console.log('Deselected cell');
+            return;
+        }
+        
+        // Check if cells are adjacent
+        const isAdjacent = this.areAdjacent(selected.row, selected.col, row, col);
+        
+        if (isAdjacent) {
+            console.log('Attempting swap between:', selected, 'and', {row, col});
+            this.attemptSwap(selected.row, selected.col, row, col);
+        } else {
+            // Not adjacent, select new cell
+            this.selectedCell = { row, col };
+            console.log('Selected new cell:', row, col);
+        }
+    }
+    
+    areAdjacent(row1, col1, row2, col2) {
+        const rowDiff = Math.abs(row1 - row2);
+        const colDiff = Math.abs(col1 - col2);
+        return (rowDiff === 1 && colDiff === 0) || (rowDiff === 0 && colDiff === 1);
+    }
+    
+    async attemptSwap(row1, col1, row2, col2) {
+        console.log('Swapping icons:', this.grid[row1][col1], 'with', this.grid[row2][col2]);
+        
+        // Perform the swap
+        const temp = this.grid[row1][col1];
+        this.grid[row1][col1] = this.grid[row2][col2];
+        this.grid[row2][col2] = temp;
+        
+        // Check for matches
+        const matches = this.findMatches();
+        
+        if (matches.length > 0) {
+            // Valid swap - proceed with matches
+            this.selectedCell = null;
+            console.log('Valid swap! Found', matches.length, 'matches');
+            await this.processMatches(matches);
+        } else {
+            // Invalid swap - revert
+            console.log('Invalid swap - no matches found, reverting');
+            this.grid[row2][col2] = this.grid[row1][col1];
+            this.grid[row1][col1] = temp;
+            
+            // Brief animation to show the attempted swap
+            await this.showInvalidSwapAnimation(row1, col1, row2, col2);
+            this.selectedCell = null;
+        }
+    }
+    
+    async showInvalidSwapAnimation(row1, col1, row2, col2) {
+        // Simple flash effect for invalid swaps
+        this.animating = true;
+        this.drawGrid();
+        await this.delay(200);
+        this.animating = false;
+    }
+    
+    async processMatches(matches) {
+        this.animating = true;
+        await this.burstMatches(matches);
+        this.applyGravity();
+        this.fillGrid();
+        this.combo++;
+        await this.delay(300);
+        this.animating = false;
+        
+        // Check for chain reactions
+        setTimeout(() => {
+            const newMatches = this.findMatches();
+            if (newMatches.length > 0) {
+                this.processMatches(newMatches);
+            } else {
+                this.combo = 0;
+                this.checkGameOver();
+            }
+        }, 100);
     }
     
     drawGrid() {
@@ -95,7 +217,7 @@ class AutumnBurstGame {
             this.ctx.stroke();
         }
         
-        // Draw icons
+        // Draw icons with highlights
         this.ctx.font = '40px Arial';
         this.ctx.textAlign = 'center';
         this.ctx.textBaseline = 'middle';
@@ -106,16 +228,41 @@ class AutumnBurstGame {
                     const x = col * this.cellSize + this.cellSize / 2;
                     const y = row * this.cellSize + this.cellSize / 2;
                     
-                    // Draw icon background
-                    this.ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+                    // Draw cell background with highlights
+                    let bgColor = 'rgba(255, 255, 255, 0.8)';
+                    
+                    // Selected cell highlight
+                    if (this.selectedCell && this.selectedCell.row === row && this.selectedCell.col === col) {
+                        bgColor = 'rgba(255, 215, 0, 0.9)'; // Golden highlight
+                    }
+                    // Hovered cell highlight
+                    else if (this.hoveredCell && this.hoveredCell.row === row && this.hoveredCell.col === col) {
+                        bgColor = 'rgba(255, 255, 255, 1.0)'; // Brighter white
+                    }
+                    
+                    this.ctx.fillStyle = bgColor;
                     this.ctx.fillRect(col * this.cellSize + 2, row * this.cellSize + 2, 
                                     this.cellSize - 4, this.cellSize - 4);
                     
+                    // Draw selection border for selected cell
+                    if (this.selectedCell && this.selectedCell.row === row && this.selectedCell.col === col) {
+                        this.ctx.strokeStyle = '#DAA520';
+                        this.ctx.lineWidth = 3;
+                        this.ctx.strokeRect(col * this.cellSize + 2, row * this.cellSize + 2, 
+                                          this.cellSize - 4, this.cellSize - 4);
+                        this.ctx.lineWidth = 1;
+                        this.ctx.strokeStyle = '#8B4513';
+                    }
+                    
                     // Draw icon
+                    this.ctx.fillStyle = 'black';
                     this.ctx.fillText(this.grid[row][col], x, y);
                 }
             }
         }
+        
+        // Draw particles for burst effects
+        this.drawParticles();
     }
     
     findMatches() {
@@ -161,25 +308,7 @@ class AutumnBurstGame {
         return cluster;
     }
     
-    async checkAndProcessMatches() {
-        const matches = this.findMatches();
-        
-        if (matches.length > 0) {
-            this.animating = true;
-            await this.burstMatches(matches);
-            this.applyGravity();
-            this.fillGrid();
-            this.combo++;
-            await this.delay(300);
-            this.animating = false;
-            
-            // Check for chain reactions
-            setTimeout(() => this.checkAndProcessMatches(), 100);
-        } else {
-            this.combo = 0;
-            this.checkGameOver();
-        }
-    }
+
     
     async burstMatches(matches) {
         let totalPoints = 0;
@@ -188,8 +317,11 @@ class AutumnBurstGame {
             const points = cluster.length * 10 * (this.combo + 1);
             totalPoints += points;
             
-            // Remove matched icons
+            // Create burst particles for each icon
             for (const {row, col} of cluster) {
+                const x = col * this.cellSize + this.cellSize / 2;
+                const y = row * this.cellSize + this.cellSize / 2;
+                this.createBurstParticles(x, y, this.grid[row][col]);
                 this.grid[row][col] = null;
             }
         }
@@ -198,8 +330,57 @@ class AutumnBurstGame {
         this.updateDisplay();
         this.drawGrid();
         
-        // Show points animation (simplified)
-        await this.delay(200);
+        // Wait for particles to scatter
+        await this.delay(400);
+    }
+    
+    createBurstParticles(x, y, icon) {
+        const particleCount = 6;
+        const colors = ['#FF6B35', '#F7931E', '#FFD700', '#DC143C', '#8B4513'];
+        
+        for (let i = 0; i < particleCount; i++) {
+            const angle = (i / particleCount) * Math.PI * 2;
+            const speed = 2 + Math.random() * 3;
+            
+            this.particles.push({
+                x: x,
+                y: y,
+                vx: Math.cos(angle) * speed,
+                vy: Math.sin(angle) * speed,
+                life: 1.0,
+                maxLife: 1.0,
+                color: colors[Math.floor(Math.random() * colors.length)],
+                size: 8 + Math.random() * 6,
+                icon: icon
+            });
+        }
+    }
+    
+    updateParticles() {
+        this.particles = this.particles.filter(particle => {
+            particle.x += particle.vx;
+            particle.y += particle.vy;
+            particle.vx *= 0.98; // Slight friction
+            particle.vy *= 0.98;
+            particle.vy += 0.1; // Slight gravity
+            particle.life -= 0.03;
+            particle.size *= 0.99;
+            
+            return particle.life > 0;
+        });
+    }
+    
+    drawParticles() {
+        for (const particle of this.particles) {
+            const alpha = particle.life / particle.maxLife;
+            this.ctx.save();
+            this.ctx.globalAlpha = alpha;
+            this.ctx.fillStyle = particle.color;
+            this.ctx.beginPath();
+            this.ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
+            this.ctx.fill();
+            this.ctx.restore();
+        }
     }
     
     applyGravity() {
@@ -238,6 +419,7 @@ class AutumnBurstGame {
     
     gameLoop() {
         if (this.gameRunning) {
+            this.updateParticles();
             this.drawGrid();
             requestAnimationFrame(() => this.gameLoop());
         }
@@ -248,6 +430,9 @@ class AutumnBurstGame {
         this.combo = 0;
         this.gameRunning = true;
         this.animating = false;
+        this.selectedCell = null;
+        this.hoveredCell = null;
+        this.particles = [];
         document.getElementById('gameOverlay').style.display = 'none';
         this.init();
     }
