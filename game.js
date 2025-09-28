@@ -10,6 +10,7 @@ class AutumnBurstGame {
         this.combo = 0;
         this.gameRunning = true;
         this.animating = false;
+        this.nextIcons = []; // Add queue for next icons
         
         // Fall-themed icons with emojis
         this.icons = ['🍂', '🎃', '🌰', '🍎', '🍄', '🌻', '🥧', '📚'];
@@ -32,6 +33,8 @@ class AutumnBurstGame {
     init() {
         // Initialize empty grid
         this.grid = Array(this.gridSize).fill().map(() => Array(this.gridSize).fill(null));
+        // Initialize next icons queue
+        this.nextIcons = Array(3).fill().map(() => this.getRandomIcon());
         this.fillGrid();
         this.updateDisplay();
     }
@@ -174,7 +177,8 @@ class AutumnBurstGame {
             this.animating = false;
             
             // Check for chain reactions
-            setTimeout(() => this.checkAndProcessMatches(), 100);
+            await this.delay(100);
+            await this.checkAndProcessMatches();
         } else {
             this.combo = 0;
             this.checkGameOver();
@@ -228,10 +232,15 @@ class AutumnBurstGame {
         const nextIconsContainer = document.getElementById('nextIcons');
         nextIconsContainer.innerHTML = '';
         
+        // Rotate the next icons queue
+        if (this.nextIcons.length < 3) {
+            this.nextIcons.push(this.getRandomIcon());
+        }
+        
         for (let i = 0; i < 3; i++) {
             const iconElement = document.createElement('div');
             iconElement.className = 'next-icon';
-            iconElement.textContent = this.getRandomIcon();
+            iconElement.textContent = this.nextIcons[i] || this.getRandomIcon();
             nextIconsContainer.appendChild(iconElement);
         }
     }
@@ -269,11 +278,20 @@ class AutumnBurstGame {
     }
     
     checkGameOver() {
-        // Simple game over condition: if score reaches a milestone, show celebration
-        // Or if no moves possible (in a more complex version)
-        if (this.score >= 1000) {
+        // Check if no more moves are possible (simplified version)
+        const possibleMatches = this.findMatches();
+        
+        // Show achievement milestones
+        if (this.score >= 1000 && this.score < 1010) {
             this.showAchievement("Autumn Master! 🍂");
+        } else if (this.score >= 2000 && this.score < 2010) {
+            this.showAchievement("Fall Legend! 🎃");
+        } else if (this.score >= 5000 && this.score < 5010) {
+            this.showAchievement("Season Champion! 🏆");
         }
+        
+        // In a more complex version, check if no more moves are possible
+        // For now, the game continues indefinitely as matches always appear
     }
     
     showAchievement(message) {
