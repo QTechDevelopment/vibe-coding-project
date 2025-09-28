@@ -2,6 +2,25 @@
 
 A delightful fall-themed match-4 puzzle game inspired by Bubble Block and Tetris mechanics. Match 4 or more identical autumn icons to make them burst and score points!
 
+## 📸 Screenshots
+
+### Desktop Views
+| Initial Game State | Active Gameplay with Scoring |
+|:--:|:--:|
+| ![Initial Game State](https://github.com/user-attachments/assets/3df2ce04-f5b3-4eec-97ef-da698fa65217) | ![Gameplay with Score](https://github.com/user-attachments/assets/c3dad118-d254-44f0-8516-ac79177bf9fd) |
+| Fresh game start with colorful autumn icons | Mid-game showing score of 750 and 3x combo multiplier |
+
+| Paused State | Game Over Screen |
+|:--:|:--:|
+| ![Game Paused](https://github.com/user-attachments/assets/9e8c6d79-678a-410b-993a-65285a078d1d) | ![Game Over](screenshots/06-game-over-screen.png) |
+| Game paused with Resume button active | End game screen showing final score of 1250 |
+
+### Mobile Responsive
+| Mobile Portrait View |
+|:--:|
+| ![Mobile View](https://github.com/user-attachments/assets/e1c1008d-2049-47f9-aba4-36dcbf1eedd6) |
+| Responsive design optimized for mobile devices |
+
 ## 🎮 Game Features
 
 ### Core Mechanics
