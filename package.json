@@ -1,0 +1,17 @@
+{
+  "name": "vibe-coding-project",
+  "version": "1.0.0",
+  "description": "A delightful fall-themed match-4 puzzle game inspired by Bubble Block and Tetris mechanics. Match 4 or more identical autumn icons to make them burst and score points!",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "keywords": ["game", "puzzle", "autumn", "match-4", "javascript"],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "vite": "^7.1.7"
+  }
+}

@@ -517,7 +517,5 @@ class AutumnBurstGame {
     }
 }
 
-// Initialize game when page loads
-document.addEventListener('DOMContentLoaded', () => {
-    window.game = new AutumnBurstGame();
-});
+// Export the game class for ES module use
+export { AutumnBurstGame };
