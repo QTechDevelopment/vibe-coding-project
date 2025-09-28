@@ -1,0 +1,30 @@
+{
+  "name": "autumn-burst-puzzle",
+  "version": "1.0.0",
+  "description": "🍂 Autumn Burst - A delightful fall-themed match-4 puzzle game",
+  "main": "index.html",
+  "scripts": {
+    "start": "python3 -m http.server 8000",
+    "dev": "python3 -m http.server 3000"
+  },
+  "keywords": [
+    "game",
+    "puzzle",
+    "match-4",
+    "autumn",
+    "fall",
+    "html5",
+    "canvas",
+    "javascript"
+  ],
+  "author": "QTech Development",
+  "license": "MIT",
+  "homepage": "https://github.com/QTechDevelopment/vibe-coding-project",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/QTechDevelopment/vibe-coding-project.git"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  }
+}

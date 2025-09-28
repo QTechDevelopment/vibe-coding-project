@@ -63,6 +63,36 @@ php -S localhost:8000
 
 Then open http://localhost:8000 in your browser.
 
+## ☁️ Deployment
+
+### Vercel Deployment
+This game is optimized for deployment on Vercel with zero configuration needed:
+
+#### Deploy Your Own
+1. Fork or clone this repository
+2. Connect your GitHub repository to [Vercel](https://vercel.com)
+3. Deploy automatically - Vercel will detect the static site configuration
+4. Your game will be live at `https://your-project-name.vercel.app`
+
+#### Deployment Features
+- ⚡ **Zero Config**: Works out of the box with included `vercel.json`
+- 🚀 **Fast CDN**: Global edge network for optimal performance
+- 📱 **Mobile Optimized**: Responsive design works perfectly on all devices
+- 🔒 **Secure**: Built-in security headers and HTTPS
+- 💰 **Free Hosting**: Deploy and host for free on Vercel's generous free tier
+
+#### Manual Deployment
+```bash
+# Install Vercel CLI
+npm i -g vercel
+
+# Deploy from project directory
+vercel
+
+# Deploy to production
+vercel --prod
+```
+
 ## 🎯 Game Controls
 
 - **Click**: Trigger match detection and processing
