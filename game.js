@@ -10,6 +10,8 @@ class AutumnBurstGame {
         this.combo = 0;
         this.gameRunning = true;
         this.animating = false;
+        this.selectedCell = null;
+        this.burstingCells = [];
         
         // Fall-themed icons with emojis
         this.icons = ['🍂', '🎃', '🌰', '🍎', '🍄', '🌻', '🥧', '📚'];
@@ -32,8 +34,38 @@ class AutumnBurstGame {
     init() {
         // Initialize empty grid
         this.grid = Array(this.gridSize).fill().map(() => Array(this.gridSize).fill(null));
-        this.fillGrid();
+        this.fillGridWithoutMatches();
         this.updateDisplay();
+    }
+    
+    fillGridWithoutMatches() {
+        // Fill grid while avoiding initial matches
+        for (let row = 0; row < this.gridSize; row++) {
+            for (let col = 0; col < this.gridSize; col++) {
+                if (!this.grid[row][col]) {
+                    let attempts = 0;
+                    let icon;
+                    do {
+                        icon = this.getRandomIcon();
+                        attempts++;
+                    } while (this.wouldCreateMatch(row, col, icon) && attempts < 10);
+                    
+                    this.grid[row][col] = icon;
+                }
+            }
+        }
+    }
+    
+    wouldCreateMatch(row, col, icon) {
+        // Temporarily place the icon and check for matches
+        const original = this.grid[row][col];
+        this.grid[row][col] = icon;
+        
+        const cluster = this.findCluster(row, col, icon, 
+            Array(this.gridSize).fill().map(() => Array(this.gridSize).fill(false)));
+        
+        this.grid[row][col] = original;
+        return cluster.length >= 4;
     }
     
     fillGrid() {
@@ -58,7 +90,10 @@ class AutumnBurstGame {
     }
     
     handleClick(e) {
-        if (!this.gameRunning || this.animating) return;
+        if (!this.gameRunning || this.animating) {
+            console.log('Click blocked - game not running or animating');
+            return;
+        }
         
         const rect = this.canvas.getBoundingClientRect();
         const x = e.clientX - rect.left;
@@ -67,8 +102,56 @@ class AutumnBurstGame {
         const col = Math.floor(x / this.cellSize);
         const row = Math.floor(y / this.cellSize);
         
+        console.log('Click detected at:', {row, col, x, y});
+        
         if (row >= 0 && row < this.gridSize && col >= 0 && col < this.gridSize) {
-            this.checkAndProcessMatches();
+            if (!this.selectedCell) {
+                // First click - select a cell
+                this.selectedCell = {row, col};
+                console.log('Selected cell:', this.selectedCell);
+            } else {
+                // Second click - try to swap with selected cell
+                if (this.isAdjacent(this.selectedCell, {row, col})) {
+                    console.log('Attempting swap between:', this.selectedCell, 'and', {row, col});
+                    this.swapCells(this.selectedCell, {row, col});
+                    this.selectedCell = null;
+                } else {
+                    // Click on non-adjacent cell - select new cell
+                    console.log('Non-adjacent click, selecting new cell:', {row, col});
+                    this.selectedCell = {row, col};
+                }
+            }
+        }
+    }
+    
+    isAdjacent(cell1, cell2) {
+        const rowDiff = Math.abs(cell1.row - cell2.row);
+        const colDiff = Math.abs(cell1.col - cell2.col);
+        return (rowDiff === 1 && colDiff === 0) || (rowDiff === 0 && colDiff === 1);
+    }
+    
+    async swapCells(cell1, cell2) {
+        this.animating = true;
+        
+        // Swap the icons
+        const temp = this.grid[cell1.row][cell1.col];
+        this.grid[cell1.row][cell1.col] = this.grid[cell2.row][cell2.col];
+        this.grid[cell2.row][cell2.col] = temp;
+        
+        // Always allow the swap first, then check for matches
+        await this.delay(100);
+        
+        // Check if this swap creates matches
+        const matches = this.findMatches();
+        if (matches.length > 0) {
+            // Valid swap - process matches
+            await this.checkAndProcessMatches();
+        } else {
+            // Invalid swap - swap back after a brief pause
+            await this.delay(300);
+            this.grid[cell2.row][cell2.col] = this.grid[cell1.row][cell1.col];
+            this.grid[cell1.row][cell1.col] = temp;
+            this.animating = false;
         }
     }
     
@@ -106,16 +189,62 @@ class AutumnBurstGame {
                     const x = col * this.cellSize + this.cellSize / 2;
                     const y = row * this.cellSize + this.cellSize / 2;
                     
-                    // Draw icon background
-                    this.ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
-                    this.ctx.fillRect(col * this.cellSize + 2, row * this.cellSize + 2, 
-                                    this.cellSize - 4, this.cellSize - 4);
+                    // Highlight selected cell
+                    if (this.selectedCell && this.selectedCell.row === row && this.selectedCell.col === col) {
+                        this.ctx.fillStyle = 'rgba(255, 215, 0, 0.5)';
+                        this.ctx.fillRect(col * this.cellSize + 2, row * this.cellSize + 2, 
+                                        this.cellSize - 4, this.cellSize - 4);
+                    } else {
+                        // Draw normal icon background
+                        this.ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+                        this.ctx.fillRect(col * this.cellSize + 2, row * this.cellSize + 2, 
+                                        this.cellSize - 4, this.cellSize - 4);
+                    }
                     
                     // Draw icon
                     this.ctx.fillText(this.grid[row][col], x, y);
                 }
             }
         }
+        
+        // Draw bursting effects
+        this.drawBurstEffects();
+    }
+    
+    drawBurstEffects() {
+        const currentTime = Date.now();
+        
+        this.burstingCells = this.burstingCells.filter(burstCell => {
+            const elapsed = currentTime - burstCell.startTime;
+            const duration = 800; // Animation duration in ms
+            
+            if (elapsed > duration) return false;
+            
+            const progress = elapsed / duration;
+            const x = burstCell.x;
+            const y = burstCell.y;
+            
+            // Draw multiple scattered particles
+            for (let i = 0; i < burstCell.particles.length; i++) {
+                const particle = burstCell.particles[i];
+                const particleX = x + particle.vx * progress * 60;
+                const particleY = y + particle.vy * progress * 60;
+                const alpha = 1 - progress;
+                const scale = 1 - progress * 0.8;
+                
+                this.ctx.save();
+                this.ctx.globalAlpha = alpha;
+                this.ctx.translate(particleX, particleY);
+                this.ctx.scale(scale, scale);
+                this.ctx.font = '20px Arial';
+                this.ctx.textAlign = 'center';
+                this.ctx.textBaseline = 'middle';
+                this.ctx.fillText(burstCell.icon, 0, 0);
+                this.ctx.restore();
+            }
+            
+            return true;
+        });
     }
     
     findMatches() {
@@ -188,18 +317,44 @@ class AutumnBurstGame {
             const points = cluster.length * 10 * (this.combo + 1);
             totalPoints += points;
             
-            // Remove matched icons
+            // Create burst effects for each matched icon
             for (const {row, col} of cluster) {
+                this.createBurstEffect(row, col, this.grid[row][col]);
                 this.grid[row][col] = null;
             }
         }
         
         this.score += totalPoints;
         this.updateDisplay();
-        this.drawGrid();
         
-        // Show points animation (simplified)
-        await this.delay(200);
+        // Show points animation and wait for burst effect
+        await this.delay(400);
+    }
+    
+    createBurstEffect(row, col, icon) {
+        const x = col * this.cellSize + this.cellSize / 2;
+        const y = row * this.cellSize + this.cellSize / 2;
+        
+        // Create multiple particles for scattering effect
+        const particles = [];
+        const particleCount = 6;
+        
+        for (let i = 0; i < particleCount; i++) {
+            const angle = (i / particleCount) * Math.PI * 2;
+            const speed = 2 + Math.random() * 2;
+            particles.push({
+                vx: Math.cos(angle) * speed,
+                vy: Math.sin(angle) * speed
+            });
+        }
+        
+        this.burstingCells.push({
+            x: x,
+            y: y,
+            icon: icon,
+            particles: particles,
+            startTime: Date.now()
+        });
     }
     
     applyGravity() {
@@ -248,6 +403,8 @@ class AutumnBurstGame {
         this.combo = 0;
         this.gameRunning = true;
         this.animating = false;
+        this.selectedCell = null;
+        this.burstingCells = [];
         document.getElementById('gameOverlay').style.display = 'none';
         this.init();
     }
