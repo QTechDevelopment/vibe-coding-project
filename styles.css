@@ -46,6 +46,66 @@ body {
     margin-bottom: 15px;
 }
 
+.player-info {
+    margin-bottom: 15px;
+}
+
+.player-name-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.keyboard-indicator {
+    font-size: 1.2rem;
+    opacity: 0.7;
+    cursor: pointer;
+    transition: opacity 0.3s ease;
+}
+
+.keyboard-indicator:hover {
+    opacity: 1;
+}
+
+.player-name-container label {
+    color: var(--autumn-light);
+    font-weight: bold;
+    font-size: 1.1rem;
+}
+
+.player-name-input {
+    padding: 8px 12px;
+    border: 2px solid var(--autumn-gold);
+    border-radius: 8px;
+    background: var(--autumn-light);
+    color: var(--autumn-brown);
+    font-family: inherit;
+    font-size: 1rem;
+    font-weight: bold;
+    max-width: 200px;
+    text-align: center;
+}
+
+.player-name-input:focus {
+    outline: none;
+    border-color: var(--autumn-orange);
+    box-shadow: 0 0 10px rgba(218, 165, 32, 0.5);
+}
+
+.player-name-input::placeholder {
+    color: var(--autumn-brown);
+    opacity: 0.7;
+}
+
 .score-board {
     display: flex;
     justify-content: center;
@@ -326,4 +386,217 @@ body {
     box-shadow: 0 8px 25px var(--shadow);
     transform: translateY(-2px);
     transition: all 0.3s ease;
+}
+
+/* On-Screen Keyboard Styles */
+.on-screen-keyboard {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(135deg, var(--autumn-brown) 0%, var(--autumn-bg) 100%);
+    border-top: 4px solid var(--autumn-gold);
+    border-top-left-radius: 20px;
+    border-top-right-radius: 20px;
+    padding: 15px;
+    box-shadow: 0 -10px 30px var(--shadow);
+    z-index: 1000;
+    transform: translateY(100%);
+    transition: transform 0.3s ease-in-out;
+    max-height: 50vh;
+    overflow-y: auto;
+    display: block !important; /* Override any inline styles */
+}
+
+.on-screen-keyboard.show {
+    transform: translateY(0);
+}
+
+.keyboard-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid var(--autumn-gold);
+}
+
+.keyboard-title {
+    color: var(--autumn-gold);
+    font-weight: bold;
+    font-size: 1.1rem;
+}
+
+.keyboard-close-btn {
+    background: var(--autumn-red);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    font-size: 1.2rem;
+    font-weight: bold;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+}
+
+.keyboard-close-btn:hover {
+    background: var(--autumn-dark-red);
+    transform: scale(1.1);
+}
+
+.keyboard-rows {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.keyboard-row {
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.key {
+    background: var(--autumn-light);
+    color: var(--autumn-brown);
+    border: 2px solid var(--autumn-gold);
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    min-width: 40px;
+    height: 45px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: inherit;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.key:hover {
+    background: var(--autumn-gold);
+    color: var(--autumn-brown);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px var(--shadow);
+}
+
+.key:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 4px var(--shadow);
+    background: var(--autumn-orange);
+    color: white;
+}
+
+.key-space {
+    min-width: 120px;
+}
+
+.key-backspace {
+    min-width: 60px;
+    background: var(--autumn-orange);
+    color: white;
+}
+
+.key-backspace:hover {
+    background: var(--autumn-dark-red);
+}
+
+.key-enter {
+    min-width: 80px;
+    background: #228B22;
+    color: white;
+}
+
+.key-enter:hover {
+    background: #006400;
+}
+
+.key-caps {
+    min-width: 60px;
+}
+
+.key-caps.active {
+    background: var(--autumn-orange);
+    color: white;
+}
+
+.key-symbols {
+    min-width: 60px;
+}
+
+/* Responsive keyboard adjustments */
+@media (max-width: 768px) {
+    .on-screen-keyboard {
+        padding: 10px;
+    }
+    
+    .key {
+        min-width: 35px;
+        height: 40px;
+        font-size: 0.9rem;
+    }
+    
+    .key-space {
+        min-width: 100px;
+    }
+    
+    .key-backspace {
+        min-width: 50px;
+    }
+    
+    .key-enter {
+        min-width: 70px;
+    }
+    
+    .key-caps, .key-symbols {
+        min-width: 50px;
+    }
+    
+    .player-name-container {
+        flex-direction: column;
+        gap: 5px;
+    }
+    
+    .player-name-input {
+        max-width: 150px;
+    }
+}
+
+@media (max-width: 480px) {
+    .key {
+        min-width: 30px;
+        height: 35px;
+        font-size: 0.8rem;
+        gap: 4px;
+    }
+    
+    .keyboard-row {
+        gap: 4px;
+    }
+    
+    .key-space {
+        min-width: 80px;
+    }
+    
+    .key-backspace, .key-enter, .key-caps, .key-symbols {
+        min-width: 45px;
+    }
+}
+
+/* Animation for key press feedback */
+@keyframes keyPress {
+    0% { transform: scale(1); }
+    50% { transform: scale(0.95); }
+    100% { transform: scale(1); }
+}
+
+.key.pressed {
+    animation: keyPress 0.1s ease;
 }
