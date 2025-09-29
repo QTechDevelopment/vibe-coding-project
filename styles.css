@@ -87,6 +87,12 @@ body {
     background: var(--autumn-light);
     box-shadow: 0 5px 15px var(--shadow);
     cursor: pointer;
+    /* Touch-friendly improvements */
+    touch-action: manipulation; /* Prevents default touch behaviors like zoom */
+    -webkit-user-select: none;   /* Prevents text selection on touch */
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
 }
 
 .game-overlay {
@@ -195,6 +201,11 @@ body {
     cursor: pointer;
     transition: all 0.3s ease;
     font-family: inherit;
+    /* Touch-friendly improvements */
+    touch-action: manipulation; /* Prevents double-tap zoom */
+    -webkit-tap-highlight-color: transparent; /* Removes tap highlight on mobile */
+    min-height: 44px; /* Minimum touch target size */
+    min-width: 44px;
 }
 
 .btn-primary {
@@ -203,7 +214,7 @@ body {
     border: 2px solid var(--autumn-dark-red);
 }
 
-.btn-primary:hover {
+.btn-primary:hover, .btn-primary:active {
     background: var(--autumn-dark-red);
     transform: translateY(-2px);
     box-shadow: 0 5px 15px var(--shadow);
@@ -215,7 +226,7 @@ body {
     border: 2px solid var(--autumn-gold);
 }
 
-.btn-secondary:hover {
+.btn-secondary:hover, .btn-secondary:active {
     background: var(--autumn-gold);
     color: var(--autumn-brown);
     transform: translateY(-2px);
@@ -245,6 +256,12 @@ body {
     
     .controls {
         justify-content: center;
+        gap: 20px; /* Increase gap on mobile for easier touch */
+    }
+    
+    .btn {
+        padding: 16px 28px; /* Larger touch targets on mobile */
+        font-size: 1.1rem;
     }
 }
 

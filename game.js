@@ -13,6 +13,10 @@ class AutumnBurstGame {
         this.selectedCell = null;
         this.burstingCells = [];
         
+        // Touch handling properties
+        this.touchStartTime = 0;
+        this.touchMoved = false;
+        
         // Fall-themed icons with emojis
         this.icons = ['🍂', '🎃', '🌰', '🍎', '🍄', '🌻', '🥧', '📚'];
         this.iconColors = {
@@ -83,26 +87,47 @@ class AutumnBurstGame {
     }
     
     setupEventListeners() {
-        this.canvas.addEventListener('click', (e) => this.handleClick(e));
+        // Mouse events
+        this.canvas.addEventListener('click', (e) => this.handleInput(e));
+        
+        // Touch events
+        this.canvas.addEventListener('touchstart', (e) => this.handleTouchStart(e));
+        this.canvas.addEventListener('touchend', (e) => this.handleTouchEnd(e));
+        this.canvas.addEventListener('touchmove', (e) => this.handleTouchMove(e));
+        
+        // Button events (both mouse and touch)
         document.getElementById('restartBtn').addEventListener('click', () => this.restart());
+        document.getElementById('restartBtn').addEventListener('touchend', (e) => {
+            e.preventDefault();
+            this.restart();
+        });
+        
         document.getElementById('newGameBtn').addEventListener('click', () => this.restart());
+        document.getElementById('newGameBtn').addEventListener('touchend', (e) => {
+            e.preventDefault();
+            this.restart();
+        });
+        
         document.getElementById('pauseBtn').addEventListener('click', () => this.togglePause());
+        document.getElementById('pauseBtn').addEventListener('touchend', (e) => {
+            e.preventDefault();
+            this.togglePause();
+        });
     }
     
-    handleClick(e) {
+    handleInput(e) {
         if (!this.gameRunning || this.animating) {
-            console.log('Click blocked - game not running or animating');
+            console.log('Input blocked - game not running or animating');
             return;
         }
         
-        const rect = this.canvas.getBoundingClientRect();
-        const x = e.clientX - rect.left;
-        const y = e.clientY - rect.top;
+        const coords = this.getEventCoordinates(e);
+        if (!coords) return;
         
-        const col = Math.floor(x / this.cellSize);
-        const row = Math.floor(y / this.cellSize);
+        const col = Math.floor(coords.x / this.cellSize);
+        const row = Math.floor(coords.y / this.cellSize);
         
-        console.log('Click detected at:', {row, col, x, y});
+        console.log('Input detected at:', {row, col, x: coords.x, y: coords.y});
         
         if (row >= 0 && row < this.gridSize && col >= 0 && col < this.gridSize) {
             if (!this.selectedCell) {
@@ -121,6 +146,51 @@ class AutumnBurstGame {
                     this.selectedCell = {row, col};
                 }
             }
+        }
+    }
+    
+    getEventCoordinates(e) {
+        const rect = this.canvas.getBoundingClientRect();
+        let x, y;
+        
+        if (e.type.startsWith('touch')) {
+            // Touch event
+            if (e.touches && e.touches.length > 0) {
+                x = e.touches[0].clientX - rect.left;
+                y = e.touches[0].clientY - rect.top;
+            } else if (e.changedTouches && e.changedTouches.length > 0) {
+                x = e.changedTouches[0].clientX - rect.left;
+                y = e.changedTouches[0].clientY - rect.top;
+            } else {
+                return null;
+            }
+        } else {
+            // Mouse event
+            x = e.clientX - rect.left;
+            y = e.clientY - rect.top;
+        }
+        
+        return {x, y};
+    }
+    
+    handleTouchStart(e) {
+        e.preventDefault(); // Prevent scrolling, zooming, etc.
+        this.touchStartTime = Date.now();
+        this.touchMoved = false;
+    }
+    
+    handleTouchMove(e) {
+        e.preventDefault(); // Prevent scrolling
+        this.touchMoved = true;
+    }
+    
+    handleTouchEnd(e) {
+        e.preventDefault(); // Prevent default touch behaviors
+        
+        // Only process as a tap if it was a quick touch without much movement
+        const touchDuration = Date.now() - this.touchStartTime;
+        if (!this.touchMoved && touchDuration < 500) {
+            this.handleInput(e);
         }
     }
     
