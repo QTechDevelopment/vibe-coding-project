@@ -13,6 +13,20 @@ class AutumnBurstGame {
         this.selectedCell = null;
         this.burstingCells = [];
         
+        // Visual effects system
+        this.particles = [];
+        this.screenShake = { active: false, intensity: 0, duration: 0, startTime: 0 };
+        
+        // Game mode system
+        this.timeRemaining = 60;
+        this.gameTimer = null;
+        this.challengeObjectives = [];
+        
+        // Quality of life features
+        this.lastMove = null;
+        this.hintsEnabled = true;
+        this.hintCells = [];
+        
         // Game state and progression
         this.gameState = {
             level: 1,
@@ -103,6 +117,9 @@ class AutumnBurstGame {
         this.grid = Array(this.gridSize).fill().map(() => Array(this.gridSize).fill(null));
         this.fillGridWithoutMatches();
         this.updateDisplay();
+        
+        // Initialize game mode
+        this.initGameMode();
     }
     
     fillGridWithoutMatches() {
@@ -167,6 +184,15 @@ class AutumnBurstGame {
             this.switchTheme(e.target.value);
         });
         
+        // Game mode selector
+        document.getElementById('gameModeSelect').addEventListener('change', (e) => {
+            this.switchGameMode(e.target.value);
+        });
+        
+        // Quality of life buttons
+        document.getElementById('hintBtn').addEventListener('click', () => this.showHint());
+        document.getElementById('undoBtn').addEventListener('click', () => this.undoLastMove());
+        
         // Settings button (placeholder for future settings panel)
         document.getElementById('settingsBtn').addEventListener('click', () => {
             this.showAchievement('Settings panel coming soon! ⚙️');
@@ -217,6 +243,16 @@ class AutumnBurstGame {
     async swapCells(cell1, cell2) {
         this.animating = true;
         
+        // Store the move for undo functionality
+        this.lastMove = {
+            cell1: { ...cell1 },
+            cell2: { ...cell2 },
+            icon1: this.grid[cell1.row][cell1.col],
+            icon2: this.grid[cell2.row][cell2.col],
+            scoreBeforeMove: this.score,
+            comboBeforeMove: this.combo
+        };
+        
         // Swap the icons
         const temp = this.grid[cell1.row][cell1.col];
         this.grid[cell1.row][cell1.col] = this.grid[cell2.row][cell2.col];
@@ -229,18 +265,37 @@ class AutumnBurstGame {
         const matches = this.findMatches();
         if (matches.length > 0) {
             // Valid swap - process matches
+            document.getElementById('undoBtn').disabled = false;
             await this.checkAndProcessMatches();
         } else {
             // Invalid swap - swap back after a brief pause
             await this.delay(300);
             this.grid[cell2.row][cell2.col] = this.grid[cell1.row][cell1.col];
             this.grid[cell1.row][cell1.col] = temp;
+            this.lastMove = null; // Clear invalid move
             this.animating = false;
         }
     }
     
     drawGrid() {
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        
+        // Apply screen shake effect
+        let shakeX = 0, shakeY = 0;
+        if (this.screenShake.active) {
+            const elapsed = Date.now() - this.screenShake.startTime;
+            if (elapsed < this.screenShake.duration) {
+                const progress = 1 - (elapsed / this.screenShake.duration);
+                const intensity = this.screenShake.intensity * progress;
+                shakeX = (Math.random() - 0.5) * intensity;
+                shakeY = (Math.random() - 0.5) * intensity;
+            } else {
+                this.screenShake.active = false;
+            }
+        }
+        
+        this.ctx.save();
+        this.ctx.translate(shakeX, shakeY);
         
         // Draw background pattern
         this.ctx.fillStyle = '#F4E4BC';
@@ -278,6 +333,11 @@ class AutumnBurstGame {
                         this.ctx.fillStyle = 'rgba(255, 215, 0, 0.5)';
                         this.ctx.fillRect(col * this.cellSize + 2, row * this.cellSize + 2, 
                                         this.cellSize - 4, this.cellSize - 4);
+                    } else if (this.hintCells.some(hint => hint.row === row && hint.col === col)) {
+                        // Highlight hint cells
+                        this.ctx.fillStyle = 'rgba(0, 255, 0, 0.3)';
+                        this.ctx.fillRect(col * this.cellSize + 2, row * this.cellSize + 2, 
+                                        this.cellSize - 4, this.cellSize - 4);
                     } else {
                         // Draw normal icon background
                         this.ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
@@ -291,8 +351,14 @@ class AutumnBurstGame {
             }
         }
         
-        // Draw bursting effects
+        this.ctx.restore();
+        
+        // Draw effects (outside of shake transform)
         this.drawBurstEffects();
+        this.drawParticles();
+        
+        // Update particle system
+        this.updateParticles();
     }
     
     drawBurstEffects() {
@@ -418,6 +484,12 @@ class AutumnBurstGame {
         // Check for large combo achievements
         if (this.combo >= 5) {
             this.showAchievement(`🔥 ${this.combo}x Combo!`);
+            this.triggerScreenShake(8, 400); // Screen shake for big combos
+        }
+        
+        // Extra screen shake for massive combos
+        if (this.combo >= 10) {
+            this.triggerScreenShake(15, 600);
         }
         
         // Show points animation and wait for burst effect
@@ -447,6 +519,89 @@ class AutumnBurstGame {
             icon: icon,
             particles: particles,
             startTime: Date.now()
+        });
+        
+        // Add falling leaf particles for enhanced visual feedback
+        if (this.gameState.settings.particlesEnabled) {
+            this.createParticleEffect(x, y, icon);
+        }
+    }
+    
+    // Enhanced particle system for visual feedback
+    createParticleEffect(x, y, icon) {
+        const particleCount = 8;
+        const particleTypes = ['🍂', '✨', '💫', '🌟'];
+        
+        for (let i = 0; i < particleCount; i++) {
+            const angle = (Math.PI * 2 * i) / particleCount + (Math.random() - 0.5) * 0.5;
+            const speed = 1 + Math.random() * 3;
+            const particleIcon = Math.random() < 0.7 ? '🍂' : particleTypes[Math.floor(Math.random() * particleTypes.length)];
+            
+            this.particles.push({
+                x: x,
+                y: y,
+                vx: Math.cos(angle) * speed,
+                vy: Math.sin(angle) * speed - 1, // Slight upward bias
+                gravity: 0.1,
+                life: 1.0,
+                maxLife: 1.0 + Math.random() * 0.5,
+                icon: particleIcon,
+                rotation: Math.random() * Math.PI * 2,
+                rotationSpeed: (Math.random() - 0.5) * 0.2,
+                scale: 0.5 + Math.random() * 0.5,
+                startTime: Date.now()
+            });
+        }
+    }
+    
+    // Screen shake effect for big combos
+    triggerScreenShake(intensity = 5, duration = 300) {
+        if (!this.gameState.settings.reducedMotion) {
+            this.screenShake = {
+                active: true,
+                intensity: intensity,
+                duration: duration,
+                startTime: Date.now()
+            };
+        }
+    }
+    
+    // Update particle system
+    updateParticles() {
+        const currentTime = Date.now();
+        
+        this.particles = this.particles.filter(particle => {
+            const age = (currentTime - particle.startTime) / 1000; // Convert to seconds
+            
+            if (age > particle.maxLife) return false;
+            
+            // Update particle physics
+            particle.vx *= 0.98; // Air resistance
+            particle.vy += particle.gravity;
+            particle.x += particle.vx;
+            particle.y += particle.vy;
+            particle.rotation += particle.rotationSpeed;
+            particle.life = 1 - (age / particle.maxLife);
+            
+            return true;
+        });
+    }
+    
+    // Draw enhanced particle effects
+    drawParticles() {
+        if (!this.gameState.settings.particlesEnabled) return;
+        
+        this.particles.forEach(particle => {
+            this.ctx.save();
+            this.ctx.globalAlpha = particle.life;
+            this.ctx.translate(particle.x, particle.y);
+            this.ctx.rotate(particle.rotation);
+            this.ctx.scale(particle.scale * particle.life, particle.scale * particle.life);
+            this.ctx.font = '16px Arial';
+            this.ctx.textAlign = 'center';
+            this.ctx.textBaseline = 'middle';
+            this.ctx.fillText(particle.icon, 0, 0);
+            this.ctx.restore();
         });
     }
     
@@ -512,6 +667,18 @@ class AutumnBurstGame {
             option.disabled = !this.gameState.unlockedThemes.includes(option.value);
         }
         
+        // Update game mode selector
+        const gameModeSelect = document.getElementById('gameModeSelect');
+        gameModeSelect.value = this.gameState.gameMode;
+        
+        // Update time display for time attack mode
+        if (this.gameState.gameMode === 'timeattack') {
+            document.getElementById('timeRemaining').textContent = this.timeRemaining;
+        }
+        
+        // Update challenge progress if in challenge mode
+        this.updateChallengeProgress();
+        
         // Update next icons preview
         const nextIconsContainer = document.getElementById('nextIcons');
         nextIconsContainer.innerHTML = '';
@@ -553,7 +720,10 @@ class AutumnBurstGame {
         this.animating = false;
         this.selectedCell = null;
         this.burstingCells = [];
+        this.lastMove = null;
+        this.hintCells = [];
         document.getElementById('gameOverlay').style.display = 'none';
+        document.getElementById('undoBtn').disabled = true;
         this.init();
     }
     
@@ -961,6 +1131,197 @@ class AutumnBurstGame {
         }, 600);
         
         return true;
+    }
+    
+    // Game Mode System
+    switchGameMode(modeName) {
+        if (this.gameModes[modeName]) {
+            this.gameState.gameMode = modeName;
+            this.saveGameState();
+            this.restart();
+            return true;
+        }
+        return false;
+    }
+    
+    initGameMode() {
+        const mode = this.gameModes[this.gameState.gameMode];
+        
+        // Reset timer
+        if (this.gameTimer) {
+            clearInterval(this.gameTimer);
+            this.gameTimer = null;
+        }
+        
+        // Configure based on game mode
+        switch (this.gameState.gameMode) {
+            case 'timeattack':
+                this.timeRemaining = mode.timeLimit;
+                this.startTimer();
+                document.getElementById('timeDisplay').style.display = 'flex';
+                this.showAchievement('🏃‍♂️ Time Attack Mode! Beat the clock!');
+                break;
+                
+            case 'zen':
+                document.getElementById('timeDisplay').style.display = 'none';
+                this.showAchievement('🧘 Zen Mode: Relax and enjoy!');
+                break;
+                
+            case 'challenge':
+                this.generateChallengeObjectives();
+                document.getElementById('timeDisplay').style.display = 'none';
+                this.showAchievement('🎯 Challenge Mode: Complete objectives!');
+                break;
+                
+            case 'classic':
+            default:
+                document.getElementById('timeDisplay').style.display = 'none';
+                break;
+        }
+    }
+    
+    startTimer() {
+        this.gameTimer = setInterval(() => {
+            this.timeRemaining--;
+            this.updateDisplay();
+            
+            if (this.timeRemaining <= 0) {
+                this.endTimeAttack();
+            } else if (this.timeRemaining <= 10) {
+                // Warning for last 10 seconds
+                this.triggerScreenShake(3, 100);
+                if (this.timeRemaining <= 5) {
+                    this.showAchievement(`⏰ ${this.timeRemaining}!`);
+                }
+            }
+        }, 1000);
+    }
+    
+    endTimeAttack() {
+        clearInterval(this.gameTimer);
+        this.gameTimer = null;
+        this.gameRunning = false;
+        
+        // Award bonus XP for time attack
+        const bonusXP = Math.floor(this.score / 5);
+        this.addXP(bonusXP);
+        
+        this.showAchievement(`⏰ Time's Up! Bonus XP: ${bonusXP}`);
+        setTimeout(() => {
+            this.gameOver();
+        }, 2000);
+    }
+    
+    generateChallengeObjectives() {
+        this.challengeObjectives = [
+            { type: 'score', target: 500, current: 0, description: 'Reach 500 points' },
+            { type: 'combo', target: 5, current: 0, description: 'Achieve 5x combo' },
+            { type: 'matches', target: 10, current: 0, description: 'Make 10 matches' }
+        ];
+    }
+    
+    updateChallengeProgress() {
+        if (this.gameState.gameMode !== 'challenge') return;
+        
+        this.challengeObjectives.forEach(objective => {
+            switch (objective.type) {
+                case 'score':
+                    objective.current = this.score;
+                    break;
+                case 'combo':
+                    objective.current = Math.max(objective.current, this.combo);
+                    break;
+                case 'matches':
+                    // This would be incremented in the match processing
+                    break;
+            }
+            
+            if (objective.current >= objective.target && !objective.completed) {
+                objective.completed = true;
+                this.showAchievement(`🎯 ${objective.description} ✓`);
+            }
+        });
+        
+        // Check if all objectives completed
+        const allCompleted = this.challengeObjectives.every(obj => obj.completed);
+        if (allCompleted) {
+            this.showAchievement('🏆 All Challenges Complete!');
+            const bonusXP = 500;
+            this.addXP(bonusXP);
+        }
+    }
+    
+    // Quality of Life Features
+    showHint() {
+        if (!this.hintsEnabled || this.animating) return;
+        
+        this.hintCells = [];
+        
+        // Find possible moves
+        for (let row = 0; row < this.gridSize; row++) {
+            for (let col = 0; col < this.gridSize; col++) {
+                if (!this.grid[row][col]) continue;
+                
+                // Check adjacent cells for possible swaps
+                const adjacent = [
+                    { row: row - 1, col: col },
+                    { row: row + 1, col: col },
+                    { row: row, col: col - 1 },
+                    { row: row, col: col + 1 }
+                ];
+                
+                for (const adj of adjacent) {
+                    if (adj.row >= 0 && adj.row < this.gridSize && 
+                        adj.col >= 0 && adj.col < this.gridSize && 
+                        this.grid[adj.row][adj.col]) {
+                        
+                        // Simulate swap
+                        const temp = this.grid[row][col];
+                        this.grid[row][col] = this.grid[adj.row][adj.col];
+                        this.grid[adj.row][adj.col] = temp;
+                        
+                        // Check if this creates matches
+                        const matches = this.findMatches();
+                        
+                        // Swap back
+                        this.grid[adj.row][adj.col] = this.grid[row][col];
+                        this.grid[row][col] = temp;
+                        
+                        if (matches.length > 0) {
+                            this.hintCells.push({ row, col }, { row: adj.row, col: adj.col });
+                            this.showAchievement('💡 Hint highlighted!');
+                            
+                            // Clear hint after 3 seconds
+                            setTimeout(() => {
+                                this.hintCells = [];
+                            }, 3000);
+                            
+                            return; // Show only first hint found
+                        }
+                    }
+                }
+            }
+        }
+        
+        // No moves found
+        this.showAchievement('🤔 No obvious moves found!');
+    }
+    
+    undoLastMove() {
+        if (!this.lastMove || this.animating) return;
+        
+        // Restore previous state
+        this.grid[this.lastMove.cell1.row][this.lastMove.cell1.col] = this.lastMove.icon1;
+        this.grid[this.lastMove.cell2.row][this.lastMove.cell2.col] = this.lastMove.icon2;
+        this.score = this.lastMove.scoreBeforeMove;
+        this.combo = this.lastMove.comboBeforeMove;
+        
+        // Clear undo availability
+        this.lastMove = null;
+        document.getElementById('undoBtn').disabled = true;
+        
+        this.updateDisplay();
+        this.showAchievement('↶ Move undone!');
     }
 }
 

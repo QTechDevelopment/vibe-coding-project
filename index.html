@@ -70,6 +70,16 @@
                 </div>
                 
                 <div class="theme-selector">
+                    <h3>Game Mode:</h3>
+                    <select id="gameModeSelect" class="theme-dropdown">
+                        <option value="classic">🎮 Classic Mode</option>
+                        <option value="timeattack">⏱️ Time Attack (60s)</option>
+                        <option value="zen">🧘 Zen Mode</option>
+                        <option value="challenge">🎯 Challenge Mode</option>
+                    </select>
+                </div>
+                
+                <div class="theme-selector">
                     <h3>Themes:</h3>
                     <select id="themeSelect" class="theme-dropdown">
                         <option value="autumn">🍂 Autumn Classic</option>
@@ -81,6 +91,9 @@
                 
                 <div class="player-stats">
                     <h3>Progress:</h3>
+                    <div class="stat-item" id="timeDisplay" style="display: none;">
+                        <span>Time: </span><span id="timeRemaining">60</span>s
+                    </div>
                     <div class="stat-item">
                         <span>XP: </span><span id="playerXP">0</span> / <span id="nextLevelXP">1000</span>
                     </div>
@@ -109,6 +122,8 @@
                 <div class="controls">
                     <button id="pauseBtn" class="btn btn-secondary">Pause</button>
                     <button id="newGameBtn" class="btn btn-primary">New Game</button>
+                    <button id="hintBtn" class="btn btn-secondary">💡 Hint</button>
+                    <button id="undoBtn" class="btn btn-secondary" disabled>↶ Undo</button>
                     <button id="settingsBtn" class="btn btn-secondary">Settings</button>
                 </div>
             </div>
