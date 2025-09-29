@@ -464,7 +464,255 @@ class AutumnBurstGame {
     }
 }
 
+// On-Screen Keyboard Implementation
+class OnScreenKeyboard {
+    constructor() {
+        this.keyboard = document.getElementById('onScreenKeyboard');
+        this.currentInput = null;
+        this.isVisible = false;
+        this.capsLock = false;
+        this.symbolsMode = false;
+        
+        this.symbolsMap = {
+            '1': '!', '2': '@', '3': '#', '4': '$', '5': '%',
+            '6': '^', '7': '&', '8': '*', '9': '(', '0': ')',
+            'q': '!', 'w': '@', 'e': '#', 'r': '$', 't': '%',
+            'y': '^', 'u': '&', 'i': '*', 'o': '(', 'p': ')',
+            'a': '~', 's': '`', 'd': '-', 'f': '_', 'g': '=',
+            'h': '+', 'j': '[', 'k': ']', 'l': '\\',
+            'z': ';', 'x': ':', 'c': "'", 'v': '"', 'b': ',',
+            'n': '.', 'm': '/'
+        };
+        
+        this.setupEventListeners();
+        this.detectMobileDevice();
+    }
+    
+    detectMobileDevice() {
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
+                         ('ontouchstart' in window) ||
+                         (navigator.maxTouchPoints > 0);
+        
+        if (isMobile) {
+            document.body.classList.add('mobile-device');
+        }
+        
+        // Enable keyboard for all devices for demo purposes
+        // In production, you might want to restrict this to mobile only
+        this.enableKeyboardForInputs();
+    }
+    
+    enableKeyboardForInputs() {
+        // Find all text inputs and add event listeners
+        const textInputs = document.querySelectorAll('input[type="text"], input[type="email"], input[type="password"], textarea');
+        
+        textInputs.forEach(input => {
+            // Prevent native keyboard on mobile by making input readonly initially
+            input.dataset.originalReadonly = input.readOnly;
+            
+            input.addEventListener('focus', (e) => {
+                this.showKeyboard(e.target);
+            });
+            
+            input.addEventListener('blur', (e) => {
+                // Delay hiding to allow for keyboard interactions
+                setTimeout(() => {
+                    if (!this.keyboard.contains(document.activeElement)) {
+                        this.hideKeyboard();
+                    }
+                }, 100);
+            });
+        });
+    }
+    
+    setupEventListeners() {
+        // Keyboard key clicks
+        this.keyboard.addEventListener('click', (e) => {
+            if (e.target.classList.contains('key')) {
+                e.preventDefault();
+                this.handleKeyPress(e.target);
+            }
+        });
+        
+        // Close button
+        document.getElementById('keyboardClose').addEventListener('click', () => {
+            this.hideKeyboard();
+        });
+        
+        // Prevent keyboard from hiding when clicking on it
+        this.keyboard.addEventListener('mousedown', (e) => {
+            e.preventDefault();
+        });
+        
+        // Handle touch events for better mobile experience
+        this.keyboard.addEventListener('touchstart', (e) => {
+            if (e.target.classList.contains('key')) {
+                e.target.classList.add('pressed');
+            }
+        });
+        
+        this.keyboard.addEventListener('touchend', (e) => {
+            if (e.target.classList.contains('key')) {
+                e.target.classList.remove('pressed');
+                setTimeout(() => this.handleKeyPress(e.target), 50);
+            }
+        });
+    }
+    
+    showKeyboard(inputElement) {
+        this.currentInput = inputElement;
+        this.isVisible = true;
+        this.keyboard.classList.add('show');
+        
+        // Scroll the input into view above the keyboard
+        setTimeout(() => {
+            const keyboardHeight = this.keyboard.offsetHeight;
+            const inputRect = inputElement.getBoundingClientRect();
+            const scrollTop = window.pageYOffset;
+            const viewportHeight = window.innerHeight;
+            
+            if (inputRect.bottom > viewportHeight - keyboardHeight) {
+                const scrollOffset = inputRect.bottom - (viewportHeight - keyboardHeight) + 20;
+                window.scrollTo({
+                    top: scrollTop + scrollOffset,
+                    behavior: 'smooth'
+                });
+            }
+        }, 300);
+    }
+    
+    hideKeyboard() {
+        this.isVisible = false;
+        this.keyboard.classList.remove('show');
+        this.currentInput = null;
+    }
+    
+    handleKeyPress(keyElement) {
+        if (!this.currentInput) return;
+        
+        const key = keyElement.dataset.key;
+        const currentValue = this.currentInput.value;
+        const selectionStart = this.currentInput.selectionStart;
+        const selectionEnd = this.currentInput.selectionEnd;
+        
+        // Add visual feedback
+        keyElement.classList.add('pressed');
+        setTimeout(() => keyElement.classList.remove('pressed'), 150);
+        
+        switch (key) {
+            case 'backspace':
+                if (selectionStart === selectionEnd) {
+                    // Delete single character
+                    if (selectionStart > 0) {
+                        this.currentInput.value = currentValue.slice(0, selectionStart - 1) + currentValue.slice(selectionStart);
+                        this.currentInput.setSelectionRange(selectionStart - 1, selectionStart - 1);
+                    }
+                } else {
+                    // Delete selection
+                    this.currentInput.value = currentValue.slice(0, selectionStart) + currentValue.slice(selectionEnd);
+                    this.currentInput.setSelectionRange(selectionStart, selectionStart);
+                }
+                break;
+                
+            case 'space':
+                this.insertText(' ');
+                break;
+                
+            case 'enter':
+                // Trigger enter event or form submission
+                const enterEvent = new KeyboardEvent('keydown', { key: 'Enter', code: 'Enter' });
+                this.currentInput.dispatchEvent(enterEvent);
+                this.hideKeyboard();
+                break;
+                
+            case 'caps':
+                this.toggleCapsLock();
+                break;
+                
+            case 'symbols':
+                this.toggleSymbolsMode();
+                break;
+                
+            default:
+                let char = key;
+                
+                if (this.symbolsMode && this.symbolsMap[key]) {
+                    char = this.symbolsMap[key];
+                } else if (this.capsLock || this.symbolsMode) {
+                    char = key.toUpperCase();
+                }
+                
+                this.insertText(char);
+                break;
+        }
+        
+        // Trigger input event for any listeners
+        this.currentInput.dispatchEvent(new Event('input', { bubbles: true }));
+    }
+    
+    insertText(text) {
+        if (!this.currentInput) return;
+        
+        const currentValue = this.currentInput.value;
+        const selectionStart = this.currentInput.selectionStart;
+        const selectionEnd = this.currentInput.selectionEnd;
+        const maxLength = this.currentInput.maxLength;
+        
+        // Check max length
+        if (maxLength && currentValue.length >= maxLength && selectionStart === selectionEnd) {
+            return;
+        }
+        
+        const newValue = currentValue.slice(0, selectionStart) + text + currentValue.slice(selectionEnd);
+        
+        if (maxLength && newValue.length > maxLength) {
+            return;
+        }
+        
+        this.currentInput.value = newValue;
+        const newPosition = selectionStart + text.length;
+        this.currentInput.setSelectionRange(newPosition, newPosition);
+    }
+    
+    toggleCapsLock() {
+        this.capsLock = !this.capsLock;
+        const capsKey = document.querySelector('[data-key="caps"]');
+        capsKey.classList.toggle('active', this.capsLock);
+        
+        // Update all letter keys
+        this.updateKeyLabels();
+    }
+    
+    toggleSymbolsMode() {
+        this.symbolsMode = !this.symbolsMode;
+        const symbolsKey = document.querySelector('[data-key="symbols"]');
+        symbolsKey.classList.toggle('active', this.symbolsMode);
+        symbolsKey.textContent = this.symbolsMode ? 'ABC' : '!@#';
+        
+        this.updateKeyLabels();
+    }
+    
+    updateKeyLabels() {
+        const keys = document.querySelectorAll('.key[data-key]');
+        
+        keys.forEach(key => {
+            const keyData = key.dataset.key;
+            
+            if (keyData.length === 1 && keyData.match(/[a-z0-9]/)) {
+                if (this.symbolsMode && this.symbolsMap[keyData]) {
+                    key.textContent = this.symbolsMap[keyData];
+                } else if (this.capsLock && keyData.match(/[a-z]/)) {
+                    key.textContent = keyData.toUpperCase();
+                } else {
+                    key.textContent = keyData.toUpperCase();
+                }
+            }
+        });
+    }
+}
+
 // Initialize game when page loads
 document.addEventListener('DOMContentLoaded', () => {
     window.game = new AutumnBurstGame();
+    window.onScreenKeyboard = new OnScreenKeyboard();
 });
