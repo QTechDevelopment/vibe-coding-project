@@ -19,6 +19,14 @@
                     <span class="label">Combo:</span>
                     <span id="combo">0x</span>
                 </div>
+                <div class="level">
+                    <span class="label">Level:</span>
+                    <span id="level">1</span>
+                </div>
+                <div class="high-score">
+                    <span class="label">Best:</span>
+                    <span id="highScore">0</span>
+                </div>
             </div>
         </header>
         
@@ -44,9 +52,69 @@
             </div>
             
             <div class="game-info">
+                <div class="power-ups">
+                    <h3>Power-Ups:</h3>
+                    <div class="power-up-grid">
+                        <button class="power-up-btn" id="goldenLeafBtn" title="Golden Leaf Bomb - Clears adjacent icons">
+                            🍂 <span id="goldenLeafCount">3</span>
+                        </button>
+                        <button class="power-up-btn" id="harvestMoonBtn" title="Harvest Moon - Transforms random icons">
+                            🌙 <span id="harvestMoonCount">2</span>
+                        </button>
+                        <button class="power-up-btn" id="autumnWindBtn" title="Autumn Wind - Shuffles the board">
+                            🌪️ <span id="autumnWindCount">2</span>
+                        </button>
+                        <button class="power-up-btn" id="frostTouchBtn" title="Frost Touch - Freezes time">
+                            ❄️ <span id="frostTouchCount">1</span>
+                        </button>
+                        <button class="power-up-btn" id="cornucopiaBtn" title="Cornucopia - Wild card matches anything">
+                            🌽 <span id="cornucopiaCount">1</span>
+                        </button>
+                    </div>
+                </div>
+
                 <div class="next-icons">
                     <h3>Next Icons:</h3>
                     <div id="nextIcons" class="next-preview"></div>
+                </div>
+                
+                <div class="theme-selector">
+                    <h3>Game Mode:</h3>
+                    <select id="gameModeSelect" class="theme-dropdown">
+                        <option value="classic">🎮 Classic Mode</option>
+                        <option value="timeattack">⏱️ Time Attack (60s)</option>
+                        <option value="zen">🧘 Zen Mode</option>
+                        <option value="challenge">🎯 Challenge Mode</option>
+                    </select>
+                </div>
+                
+                <div class="theme-selector">
+                    <h3>Themes:</h3>
+                    <select id="themeSelect" class="theme-dropdown">
+                        <option value="autumn">🍂 Autumn Classic</option>
+                        <option value="halloween" disabled>🎃 Halloween Spooky</option>
+                        <option value="thanksgiving" disabled>🦃 Thanksgiving Feast</option>
+                        <option value="harvest" disabled>🌾 Harvest Time</option>
+                    </select>
+                </div>
+                
+                <div class="player-stats">
+                    <h3>Progress:</h3>
+                    <div class="stat-item" id="timeDisplay" style="display: none;">
+                        <span>Time: </span><span id="timeRemaining">60</span>s
+                    </div>
+                    <div class="stat-item">
+                        <span>XP: </span><span id="playerXP">0</span> / <span id="nextLevelXP">1000</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div id="xpProgress" class="progress-fill"></div>
+                    </div>
+                    <div class="stat-item">
+                        <span>Games Played: </span><span id="gamesPlayed">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span>Achievements: </span><span id="achievementCount">0</span>
+                    </div>
                 </div>
                 
                 <div class="instructions">
@@ -56,12 +124,16 @@
                         <li>Click adjacent icon to swap</li>
                         <li>Match 4+ identical icons to burst</li>
                         <li>Create combos for bonus points</li>
+                        <li>Use power-ups strategically</li>
                     </ul>
                 </div>
                 
                 <div class="controls">
                     <button id="pauseBtn" class="btn btn-secondary">Pause</button>
                     <button id="newGameBtn" class="btn btn-primary">New Game</button>
+                    <button id="hintBtn" class="btn btn-secondary">💡 Hint</button>
+                    <button id="undoBtn" class="btn btn-secondary" disabled>↶ Undo</button>
+                    <button id="settingsBtn" class="btn btn-secondary">Settings</button>
                 </div>
             </div>
         </main>
