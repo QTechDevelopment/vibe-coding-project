@@ -453,7 +453,6 @@ body {
     transition: all 0.3s ease;
 }
 
- copilot/fix-54a15f26-c68d-41a9-8b06-fb2fcab235ef
 /* Hint cells styling */
 .hint-cell {
     background: rgba(0, 255, 0, 0.3) !important;
@@ -593,12 +592,10 @@ body {
     background: var(--autumn-brown);
     animation: blink 1s infinite;
     margin-left: 2px;
- copilot/vscode1759085342112
 }
 
 @keyframes blink {
     0%, 50% { opacity: 1; }
- copilot/fix-54a15f26-c68d-41a9-8b06-fb2fcab235ef
     51%, 100% { opacity: 0.5; }
 }
 
@@ -776,5 +773,4 @@ body {
         min-height: 40px;
         padding: 10px 15px;
     }
- copilot/vscode1759085342112
 }
