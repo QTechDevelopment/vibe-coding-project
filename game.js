@@ -13,6 +13,7 @@ class AutumnBurstGame {
         this.selectedCell = null;
         this.burstingCells = [];
         
+ copilot/fix-54a15f26-c68d-41a9-8b06-fb2fcab235ef
         // Visual effects system
         this.particles = [];
         this.screenShake = { active: false, intensity: 0, duration: 0, startTime: 0 };
@@ -53,6 +54,28 @@ class AutumnBurstGame {
                 reducedMotion: false,
                 difficulty: 'normal'
             }
+
+        // High score system
+        this.highScores = this.loadHighScores();
+        this.playerName = '';
+        
+        // On-screen keyboard state
+        this.keyboardVisible = false;
+        this.keyboardInput = '';
+        this.keyboardCallback = null;
+        
+        // Fall-themed icons with emojis
+        this.icons = ['🍂', '🎃', '🌰', '🍎', '🍄', '🌻', '🥧', '📚'];
+        this.iconColors = {
+            '🍂': '#D2691E', // Orange leaf
+            '🎃': '#FF6347', // Pumpkin
+            '🌰': '#8B4513', // Acorn
+            '🍎': '#DC143C', // Apple
+            '🍄': '#CD853F', // Mushroom
+            '🌻': '#FFD700', // Sunflower
+            '🥧': '#DEB887', // Pie
+            '📚': '#4682B4'  // Books
+ copilot/vscode1759085342112
         };
         
         // Theme configurations
@@ -172,6 +195,7 @@ class AutumnBurstGame {
         document.getElementById('newGameBtn').addEventListener('click', () => this.restart());
         document.getElementById('pauseBtn').addEventListener('click', () => this.togglePause());
         
+ copilot/fix-54a15f26-c68d-41a9-8b06-fb2fcab235ef
         // Power-up buttons
         document.getElementById('goldenLeafBtn').addEventListener('click', () => this.usePowerUp('goldenLeaf'));
         document.getElementById('harvestMoonBtn').addEventListener('click', () => this.usePowerUp('harvestMoon'));
@@ -197,6 +221,147 @@ class AutumnBurstGame {
         document.getElementById('settingsBtn').addEventListener('click', () => {
             this.showAchievement('Settings panel coming soon! ⚙️');
         });
+
+        // High score system event listeners
+        document.getElementById('keyboardBtn').addEventListener('click', () => {
+            this.showKeyboard((name) => {
+                document.getElementById('playerNameInput').value = name;
+            });
+        });
+        document.getElementById('saveScoreBtn').addEventListener('click', () => this.saveHighScore());
+        
+        // On-screen keyboard event listeners
+        this.setupKeyboardEventListeners();
+    }
+    
+    setupKeyboardEventListeners() {
+        const keyboard = document.getElementById('onScreenKeyboard');
+        const keys = keyboard.querySelectorAll('.key');
+        const closeBtn = document.getElementById('closeKeyboard');
+        const cancelBtn = document.getElementById('keyboardCancel');
+        const doneBtn = document.getElementById('keyboardDone');
+        
+        keys.forEach(key => {
+            key.addEventListener('click', () => this.handleKeyPress(key.dataset.key));
+        });
+        
+        closeBtn.addEventListener('click', () => this.hideKeyboard(false));
+        cancelBtn.addEventListener('click', () => this.hideKeyboard(false));
+        doneBtn.addEventListener('click', () => this.hideKeyboard(true));
+        
+        // Prevent keyboard from closing when clicking inside
+        keyboard.querySelector('.keyboard-container').addEventListener('click', (e) => {
+            e.stopPropagation();
+        });
+        
+        // Close keyboard when clicking outside
+        keyboard.addEventListener('click', () => this.hideKeyboard(false));
+    }
+    
+    loadHighScores() {
+        try {
+            const scores = localStorage.getItem('autumnBurstHighScores');
+            return scores ? JSON.parse(scores) : [];
+        } catch (e) {
+            return [];
+        }
+    }
+    
+    saveHighScoreToStorage() {
+        try {
+            localStorage.setItem('autumnBurstHighScores', JSON.stringify(this.highScores));
+        } catch (e) {
+            console.warn('Could not save high scores to localStorage');
+        }
+    }
+    
+    isHighScore(score) {
+        if (this.highScores.length < 5) return true;
+        return score > Math.min(...this.highScores.map(hs => hs.score));
+    }
+    
+    showKeyboard(callback) {
+        this.keyboardVisible = true;
+        this.keyboardInput = '';
+        this.keyboardCallback = callback;
+        
+        const keyboard = document.getElementById('onScreenKeyboard');
+        const display = document.getElementById('keyboardInput');
+        
+        display.textContent = '';
+        keyboard.style.display = 'flex';
+        
+        // Animate in
+        setTimeout(() => {
+            keyboard.style.opacity = '1';
+        }, 10);
+    }
+    
+    hideKeyboard(confirm = false) {
+        if (!this.keyboardVisible) return;
+        
+        const keyboard = document.getElementById('onScreenKeyboard');
+        keyboard.style.opacity = '0';
+        
+        setTimeout(() => {
+            keyboard.style.display = 'none';
+            this.keyboardVisible = false;
+            
+            if (confirm && this.keyboardCallback) {
+                this.keyboardCallback(this.keyboardInput.trim());
+            }
+            
+            this.keyboardCallback = null;
+            this.keyboardInput = '';
+        }, 200);
+    }
+    
+    handleKeyPress(key) {
+        const display = document.getElementById('keyboardInput');
+        
+        if (key === 'BACKSPACE') {
+            this.keyboardInput = this.keyboardInput.slice(0, -1);
+        } else if (key === ' ') {
+            if (this.keyboardInput.length < 10 && this.keyboardInput.trim().length > 0) {
+                this.keyboardInput += ' ';
+            }
+        } else if (this.keyboardInput.length < 10) {
+            this.keyboardInput += key;
+        }
+        
+        display.textContent = this.keyboardInput;
+        
+        // Update regular input field if it exists
+        const nameInput = document.getElementById('playerNameInput');
+        if (nameInput) {
+            nameInput.value = this.keyboardInput;
+        }
+    }
+    
+    saveHighScore() {
+        const nameInput = document.getElementById('playerNameInput');
+        const name = nameInput.value.trim() || 'Anonymous';
+        
+        // Add to high scores
+        this.highScores.push({
+            name: name,
+            score: this.score,
+            date: new Date().toLocaleDateString()
+        });
+        
+        // Sort by score (highest first) and keep top 5
+        this.highScores.sort((a, b) => b.score - a.score);
+        this.highScores = this.highScores.slice(0, 5);
+        
+        // Save to localStorage
+        this.saveHighScoreToStorage();
+        
+        // Hide high score section
+        document.getElementById('highScoreSection').style.display = 'none';
+        
+        // Show achievement
+        this.showAchievement(`🏆 High Score Saved! 🏆`);
+ copilot/vscode1759085342112
     }
     
     handleClick(e) {
@@ -720,10 +885,21 @@ class AutumnBurstGame {
         this.animating = false;
         this.selectedCell = null;
         this.burstingCells = [];
+ copilot/fix-54a15f26-c68d-41a9-8b06-fb2fcab235ef
         this.lastMove = null;
         this.hintCells = [];
         document.getElementById('gameOverlay').style.display = 'none';
         document.getElementById('undoBtn').disabled = true;
+
+        this.playerName = '';
+        
+        // Hide overlays
+        document.getElementById('gameOverlay').style.display = 'none';
+        document.getElementById('highScoreSection').style.display = 'none';
+        document.getElementById('onScreenKeyboard').style.display = 'none';
+        this.keyboardVisible = false;
+        
+ copilot/vscode1759085342112
         this.init();
     }
     
@@ -740,6 +916,15 @@ class AutumnBurstGame {
     gameOver() {
         this.gameRunning = false;
         document.getElementById('finalScore').textContent = this.score;
+        
+        // Check if it's a high score
+        if (this.isHighScore(this.score)) {
+            document.getElementById('highScoreSection').style.display = 'block';
+            document.getElementById('playerNameInput').value = '';
+        } else {
+            document.getElementById('highScoreSection').style.display = 'none';
+        }
+        
         document.getElementById('gameOverlay').style.display = 'flex';
     }
     
@@ -748,13 +933,19 @@ class AutumnBurstGame {
         this.checkAchievements();
         
         // Simple game over condition: if score reaches a milestone, show celebration
-        // Or if no moves possible (in a more complex version)
         if (this.score >= 1000) {
             this.showAchievement("Autumn Master! 🍂");
         }
         
+ copilot/fix-54a15f26-c68d-41a9-8b06-fb2fcab235ef
         // Check for impossible moves (future enhancement)
         // For now, game continues indefinitely
+
+        // For demo purposes, trigger game over at 500 points
+        if (this.score >= 500) {
+            setTimeout(() => this.gameOver(), 1000);
+        }
+ copilot/vscode1759085342112
     }
     
     showAchievement(message) {
