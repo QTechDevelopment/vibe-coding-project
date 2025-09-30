@@ -13,7 +13,6 @@ class AutumnBurstGame {
         this.selectedCell = null;
         this.burstingCells = [];
         
- copilot/fix-54a15f26-c68d-41a9-8b06-fb2fcab235ef
         // Visual effects system
         this.particles = [];
         this.screenShake = { active: false, intensity: 0, duration: 0, startTime: 0 };
@@ -54,6 +53,7 @@ class AutumnBurstGame {
                 reducedMotion: false,
                 difficulty: 'normal'
             }
+        };
 
         // High score system
         this.highScores = this.loadHighScores();
@@ -75,7 +75,6 @@ class AutumnBurstGame {
             '🌻': '#FFD700', // Sunflower
             '🥧': '#DEB887', // Pie
             '📚': '#4682B4'  // Books
- copilot/vscode1759085342112
         };
         
         // Theme configurations
@@ -195,7 +194,6 @@ class AutumnBurstGame {
         document.getElementById('newGameBtn').addEventListener('click', () => this.restart());
         document.getElementById('pauseBtn').addEventListener('click', () => this.togglePause());
         
- copilot/fix-54a15f26-c68d-41a9-8b06-fb2fcab235ef
         // Power-up buttons
         document.getElementById('goldenLeafBtn').addEventListener('click', () => this.usePowerUp('goldenLeaf'));
         document.getElementById('harvestMoonBtn').addEventListener('click', () => this.usePowerUp('harvestMoon'));
@@ -361,7 +359,6 @@ class AutumnBurstGame {
         
         // Show achievement
         this.showAchievement(`🏆 High Score Saved! 🏆`);
- copilot/vscode1759085342112
     }
     
     handleClick(e) {
@@ -885,7 +882,6 @@ class AutumnBurstGame {
         this.animating = false;
         this.selectedCell = null;
         this.burstingCells = [];
- copilot/fix-54a15f26-c68d-41a9-8b06-fb2fcab235ef
         this.lastMove = null;
         this.hintCells = [];
         document.getElementById('gameOverlay').style.display = 'none';
@@ -899,7 +895,6 @@ class AutumnBurstGame {
         document.getElementById('onScreenKeyboard').style.display = 'none';
         this.keyboardVisible = false;
         
- copilot/vscode1759085342112
         this.init();
     }
     
@@ -937,7 +932,6 @@ class AutumnBurstGame {
             this.showAchievement("Autumn Master! 🍂");
         }
         
- copilot/fix-54a15f26-c68d-41a9-8b06-fb2fcab235ef
         // Check for impossible moves (future enhancement)
         // For now, game continues indefinitely
 
@@ -945,7 +939,6 @@ class AutumnBurstGame {
         if (this.score >= 500) {
             setTimeout(() => this.gameOver(), 1000);
         }
- copilot/vscode1759085342112
     }
     
     showAchievement(message) {
