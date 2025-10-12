@@ -128,9 +128,6 @@ class AutumnBurstGame {
         return this.icons[Math.floor(Math.random() * this.icons.length)];
     }
     
-    getRandomIcon() {
-        return this.icons[Math.floor(Math.random() * this.icons.length)];
-    }
     
     setupEventListeners() {
         // Keyboard controls for moving falling pieces
