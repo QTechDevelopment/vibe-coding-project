@@ -12,23 +12,28 @@ export const GRID_CONFIG = {
 export const BLOCK_TYPES = {
     leaf: {
         color: 0xFF6B35, // Vibrant orange
-        name: 'Maple Leaf'
+        name: 'Maple Leaf',
+        icon: '🍂'
     },
     pumpkin: {
         color: 0xFF8C00, // Dark orange
-        name: 'Pumpkin'
+        name: 'Pumpkin',
+        icon: '🎃'
     },
     acorn: {
         color: 0x8B4513, // Saddle brown
-        name: 'Acorn'
+        name: 'Acorn',
+        icon: '🌰'
     },
     apple: {
         color: 0xDC143C, // Crimson
-        name: 'Apple'
+        name: 'Apple',
+        icon: '🍎'
     },
     scarf: {
         color: 0xB8860B, // Dark goldenrod
-        name: 'Cozy Scarf'
+        name: 'Cozy Scarf',
+        icon: '🧣'
     }
 };
 

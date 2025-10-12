@@ -31,6 +31,9 @@ export class Block {
         
         // Store reference for raycasting
         this.mesh.userData = { block: this };
+        
+        // Add emoji icon sprite
+        this.createIconSprite();
     }
 
     createGeometry() {
@@ -102,6 +105,43 @@ export class Block {
         return material;
     }
 
+    createIconSprite() {
+        if (!this.config.icon) return;
+        
+        // Create canvas for emoji texture
+        const canvas = document.createElement('canvas');
+        const size = 256;
+        canvas.width = size;
+        canvas.height = size;
+        const ctx = canvas.getContext('2d');
+        
+        // Draw emoji icon
+        ctx.font = `${size * 0.8}px Arial`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(this.config.icon, size / 2, size / 2);
+        
+        // Create texture from canvas
+        const texture = new THREE.CanvasTexture(canvas);
+        texture.needsUpdate = true;
+        
+        // Create sprite material
+        const spriteMaterial = new THREE.SpriteMaterial({
+            map: texture,
+            transparent: true,
+            depthTest: true,
+            depthWrite: false
+        });
+        
+        // Create and position sprite
+        this.iconSprite = new THREE.Sprite(spriteMaterial);
+        this.iconSprite.scale.set(0.8, 0.8, 1);
+        this.iconSprite.position.set(0, 0, 0.2); // Slightly in front of block
+        
+        // Add sprite to the block mesh
+        this.mesh.add(this.iconSprite);
+    }
+
     update() {
         this.time += 0.016; // Approximate 60fps
         
@@ -128,6 +168,15 @@ export class Block {
     }
 
     dispose() {
+        if (this.iconSprite) {
+            if (this.iconSprite.material) {
+                if (this.iconSprite.material.map) {
+                    this.iconSprite.material.map.dispose();
+                }
+                this.iconSprite.material.dispose();
+            }
+        }
+        
         if (this.mesh) {
             if (this.mesh.geometry) this.mesh.geometry.dispose();
             if (this.mesh.material) this.mesh.material.dispose();
