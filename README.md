@@ -34,11 +34,12 @@ A delightful fall-themed match-4 puzzle game inspired by Bubble Block and Tetris
 
 ## 🚀 How to Play
 
-1. **Objective**: Click anywhere on the game board to trigger match detection
+1. **Objective**: Click or tap anywhere on the game board to select and swap icons
 2. **Matching**: The game automatically finds clusters of 4+ identical icons
 3. **Scoring**: Matched clusters burst and award points based on size
 4. **Combos**: Chain reactions multiply your score
 5. **Strategy**: Plan your moves to create larger clusters and combo chains
+6. **Controls**: Use mouse clicks on desktop or finger taps on mobile devices
 
 ## 🛠️ Installation & Setup
 
@@ -65,10 +66,11 @@ Then open http://localhost:8000 in your browser.
 
 ## 🎯 Game Controls
 
-- **Click**: Trigger match detection and processing
+- **Desktop**: Click to select icons and swap adjacent cells
+- **Mobile/Touch**: Tap to select icons and tap adjacent cells to swap
 - **Pause**: Pause/resume the game
 - **New Game**: Start fresh with a new random board
-- **Mobile**: Touch-friendly for mobile devices
+- **Cross-Platform**: Works seamlessly on both desktop and mobile devices
 
 ## 🏆 Scoring System
 
@@ -77,12 +79,15 @@ Then open http://localhost:8000 in your browser.
 - **Cluster Size Bonus**: Larger clusters award more points
 - **Achievement Milestones**: Special celebrations at score milestones
 
-## 📱 Mobile Support
+## 📱 Mobile & Touch Support
 
-The game is fully responsive and optimized for mobile devices:
-- Touch-friendly controls
-- Responsive layout that adapts to screen size
-- Portrait mode optimization for phones
+The game is fully responsive and optimized for touch screen devices:
+- **Native Touch Events**: Full support for touchstart, touchmove, and touchend events
+- **Touch-Friendly Controls**: Optimized button sizes and touch targets (minimum 44px)
+- **Responsive Layout**: Adapts seamlessly to different screen sizes
+- **Portrait Mode**: Optimized layout for phone screens
+- **Smooth Touch Interactions**: Prevents unwanted zooming and scrolling
+- **Visual Feedback**: Active states for touch interactions
 - Smooth touch interactions
 
 ## 🎨 Technical Details
