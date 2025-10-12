@@ -13,7 +13,6 @@ class AutumnBurstGame {
         this.selectedCell = null;
         this.burstingCells = [];
         
- copilot/fix-a644619d-7235-4d73-b96f-f6105454205b
         // Touch handling properties
         this.touchStartTime = 0;
         this.touchMoved = false;
@@ -68,7 +67,6 @@ class AutumnBurstGame {
         this.keyboardVisible = false;
         this.keyboardInput = '';
         this.keyboardCallback = null;
- copilot/vscode1759085342112
         
         // Fall-themed icons with emojis
         this.icons = ['🍂', '🎃', '🌰', '🍎', '🍄', '🌻', '🥧', '📚'];
@@ -217,7 +215,6 @@ class AutumnBurstGame {
         });
         
         document.getElementById('pauseBtn').addEventListener('click', () => this.togglePause());
-copilot/fix-a644619d-7235-4d73-b96f-f6105454205b
         document.getElementById('pauseBtn').addEventListener('touchend', (e) => {
             e.preventDefault();
             this.togglePause();
@@ -389,7 +386,6 @@ copilot/fix-a644619d-7235-4d73-b96f-f6105454205b
         
         // Show achievement
         this.showAchievement(`🏆 High Score Saved! 🏆`);
-copilot/vscode1759085342112
     }
     
     handleInput(e) {
