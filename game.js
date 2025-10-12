@@ -368,7 +368,8 @@ class AutumnBurstGame {
             this.combo = 0;
             this.checkGameOver();
         }
-    }    async burstMatches(matches) {
+    }
+    async burstMatches(matches) {
         let totalPoints = 0;
 
         for (const cluster of matches) {
