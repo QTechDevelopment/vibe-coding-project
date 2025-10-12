@@ -19,6 +19,14 @@
                     <span class="label">Combo:</span>
                     <span id="combo">0x</span>
                 </div>
+                <div class="level">
+                    <span class="label">Level:</span>
+                    <span id="level">1</span>
+                </div>
+                <div class="high-score">
+                    <span class="label">Best:</span>
+                    <span id="highScore">0</span>
+                </div>
             </div>
         </header>
         
@@ -29,15 +37,84 @@
                     <div class="overlay-content">
                         <h2>Game Over!</h2>
                         <p>Final Score: <span id="finalScore">0</span></p>
+                        <div id="highScoreSection" style="display: none;">
+                            <p>🎉 New High Score! 🎉</p>
+                            <p>Enter your name:</p>
+                            <div class="name-input-container">
+                                <input type="text" id="playerNameInput" class="name-input" maxlength="10" readonly>
+                                <button id="keyboardBtn" class="btn btn-secondary">🔤</button>
+                            </div>
+                            <button id="saveScoreBtn" class="btn btn-primary">Save Score</button>
+                        </div>
                         <button id="restartBtn" class="btn btn-primary">Play Again</button>
                     </div>
                 </div>
             </div>
             
             <div class="game-info">
+                <div class="power-ups">
+                    <h3>Power-Ups:</h3>
+                    <div class="power-up-grid">
+                        <button class="power-up-btn" id="goldenLeafBtn" title="Golden Leaf Bomb - Clears adjacent icons">
+                            🍂 <span id="goldenLeafCount">3</span>
+                        </button>
+                        <button class="power-up-btn" id="harvestMoonBtn" title="Harvest Moon - Transforms random icons">
+                            🌙 <span id="harvestMoonCount">2</span>
+                        </button>
+                        <button class="power-up-btn" id="autumnWindBtn" title="Autumn Wind - Shuffles the board">
+                            🌪️ <span id="autumnWindCount">2</span>
+                        </button>
+                        <button class="power-up-btn" id="frostTouchBtn" title="Frost Touch - Freezes time">
+                            ❄️ <span id="frostTouchCount">1</span>
+                        </button>
+                        <button class="power-up-btn" id="cornucopiaBtn" title="Cornucopia - Wild card matches anything">
+                            🌽 <span id="cornucopiaCount">1</span>
+                        </button>
+                    </div>
+                </div>
+
                 <div class="next-icons">
                     <h3>Next Icons:</h3>
                     <div id="nextIcons" class="next-preview"></div>
+                </div>
+                
+                <div class="theme-selector">
+                    <h3>Game Mode:</h3>
+                    <select id="gameModeSelect" class="theme-dropdown">
+                        <option value="classic">🎮 Classic Mode</option>
+                        <option value="timeattack">⏱️ Time Attack (60s)</option>
+                        <option value="zen">🧘 Zen Mode</option>
+                        <option value="challenge">🎯 Challenge Mode</option>
+                    </select>
+                </div>
+                
+                <div class="theme-selector">
+                    <h3>Themes:</h3>
+                    <select id="themeSelect" class="theme-dropdown">
+                        <option value="autumn">🍂 Autumn Classic</option>
+                        <option value="halloween" disabled>🎃 Halloween Spooky</option>
+                        <option value="thanksgiving" disabled>🦃 Thanksgiving Feast</option>
+                        <option value="harvest" disabled>🌾 Harvest Time</option>
+                    </select>
+                </div>
+                
+                <div class="player-stats">
+                    <h3>Progress:</h3>
+                    <div class="stat-item" id="timeDisplay" style="display: none;">
+                        <span>Time: </span><span id="timeRemaining">60</span>s
+                    </div>
+                    <div class="stat-item">
+                        <span>XP: </span><span id="playerXP">0</span> / <span id="nextLevelXP">1000</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div id="xpProgress" class="progress-fill"></div>
+                    </div>
+                    <div class="stat-item">
+                        <span>Games Played: </span><span id="gamesPlayed">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span>Achievements: </span><span id="achievementCount">0</span>
+                    </div>
                 </div>
                 
                 <div class="instructions">
@@ -47,15 +124,75 @@
                         <li>Click/tap adjacent icon to swap</li>
                         <li>Match 4+ identical icons to burst</li>
                         <li>Create combos for bonus points</li>
+                        <li>Use power-ups strategically</li>
                     </ul>
                 </div>
                 
                 <div class="controls">
                     <button id="pauseBtn" class="btn btn-secondary">Pause</button>
                     <button id="newGameBtn" class="btn btn-primary">New Game</button>
+                    <button id="hintBtn" class="btn btn-secondary">💡 Hint</button>
+                    <button id="undoBtn" class="btn btn-secondary" disabled>↶ Undo</button>
+                    <button id="settingsBtn" class="btn btn-secondary">Settings</button>
                 </div>
             </div>
         </main>
+    </div>
+    
+    <!-- On-Screen Keyboard -->
+    <div id="onScreenKeyboard" class="keyboard-overlay" style="display: none;">
+        <div class="keyboard-container">
+            <div class="keyboard-header">
+                <h3>🍂 Enter Your Name 🍂</h3>
+                <button id="closeKeyboard" class="keyboard-close">×</button>
+            </div>
+            <div class="keyboard-display">
+                <div id="keyboardInput" class="keyboard-input"></div>
+                <div class="keyboard-cursor"></div>
+            </div>
+            <div class="keyboard-keys">
+                <div class="keyboard-row">
+                    <button class="key" data-key="Q">Q</button>
+                    <button class="key" data-key="W">W</button>
+                    <button class="key" data-key="E">E</button>
+                    <button class="key" data-key="R">R</button>
+                    <button class="key" data-key="T">T</button>
+                    <button class="key" data-key="Y">Y</button>
+                    <button class="key" data-key="U">U</button>
+                    <button class="key" data-key="I">I</button>
+                    <button class="key" data-key="O">O</button>
+                    <button class="key" data-key="P">P</button>
+                </div>
+                <div class="keyboard-row">
+                    <button class="key" data-key="A">A</button>
+                    <button class="key" data-key="S">S</button>
+                    <button class="key" data-key="D">D</button>
+                    <button class="key" data-key="F">F</button>
+                    <button class="key" data-key="G">G</button>
+                    <button class="key" data-key="H">H</button>
+                    <button class="key" data-key="J">J</button>
+                    <button class="key" data-key="K">K</button>
+                    <button class="key" data-key="L">L</button>
+                </div>
+                <div class="keyboard-row">
+                    <button class="key" data-key="Z">Z</button>
+                    <button class="key" data-key="X">X</button>
+                    <button class="key" data-key="C">C</button>
+                    <button class="key" data-key="V">V</button>
+                    <button class="key" data-key="B">B</button>
+                    <button class="key" data-key="N">N</button>
+                    <button class="key" data-key="M">M</button>
+                    <button class="key key-backspace" data-key="BACKSPACE">🍂</button>
+                </div>
+                <div class="keyboard-row">
+                    <button class="key key-space" data-key=" ">SPACE</button>
+                </div>
+            </div>
+            <div class="keyboard-actions">
+                <button id="keyboardCancel" class="btn btn-secondary">Cancel</button>
+                <button id="keyboardDone" class="btn btn-primary">Done</button>
+            </div>
+        </div>
     </div>
     
     <script src="game.js"></script>
